@@ -1,0 +1,153 @@
+.bew-editor-shell {
+  position: relative;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #212529;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.bew-editor-body {
+  position: relative;
+}
+
+.bew-content-editable {
+  min-height: 200px;
+  padding: 0.75rem 1rem;
+  outline: none;
+}
+
+.bew-placeholder {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  color: #adb5bd;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bew-paragraph {
+  margin: 0 0 0.5rem;
+}
+
+.bew-text-bold {
+  font-weight: 700;
+}
+
+.bew-text-italic {
+  font-style: italic;
+}
+
+.bew-text-underline {
+  text-decoration: underline;
+}
+
+.bew-text-strikethrough {
+  text-decoration: line-through;
+}
+
+.bew-text-underline.bew-text-strikethrough {
+  text-decoration: underline line-through;
+}
+
+/* Approximate Bootstrap button styling inside the editor. The published email
+   HTML uses the raw `.btn` classes, which the bootstrap-email compiler expands
+   into table markup — these rules are only for the editing surface. */
+.bew-content-editable .btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+  cursor: text;
+}
+
+.bew-content-editable .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+.bew-content-editable .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #fff;
+}
+
+.bew-content-editable .btn-success {
+  background-color: #198754;
+  border-color: #198754;
+  color: #fff;
+}
+
+.bew-content-editable .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
+}
+
+.bew-content-editable .btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.bew-content-editable .btn-info {
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+  color: #000;
+}
+
+.bew-content-editable .btn-light {
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+  color: #000;
+}
+
+.bew-content-editable .btn-dark {
+  background-color: #212529;
+  border-color: #212529;
+  color: #fff;
+}
+
+.bew-content-editable .btn-outline-primary {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.bew-content-editable .btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.bew-content-editable .btn-outline-success {
+  border-color: #198754;
+  color: #198754;
+}
+
+.bew-content-editable .btn-outline-danger {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.bew-content-editable .btn-outline-warning {
+  border-color: #ffc107;
+  color: #997404;
+}
+
+.bew-content-editable .btn-outline-info {
+  border-color: #0dcaf0;
+  color: #087990;
+}
+
+.bew-content-editable .btn-outline-light {
+  border-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.bew-content-editable .btn-outline-dark {
+  border-color: #212529;
+  color: #212529;
+}

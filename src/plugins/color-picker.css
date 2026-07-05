@@ -1,0 +1,130 @@
+.bew-color-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: max-content;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.bew-color-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #343a40;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bew-color-clear:hover {
+  background: #f1f3f5;
+}
+
+.bew-color-clear-swatch {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bew-color-clear-swatch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -3px;
+  right: -3px;
+  height: 1.5px;
+  background: #dc3545;
+  transform: rotate(-45deg);
+}
+
+.bew-color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bew-color-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bew-color-grid-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bew-swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.bew-swatch:hover {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 1px #fff, 0 0 0 2px #0d6efd;
+  position: relative;
+  z-index: 1;
+}
+
+.bew-swatch--transparent {
+  background:
+    linear-gradient(45deg, #ccc 25%, transparent 25%) -4px 0/8px 8px,
+    linear-gradient(-45deg, #ccc 25%, transparent 25%) -4px 0/8px 8px,
+    linear-gradient(45deg, transparent 75%, #ccc 75%) 0 0/8px 8px,
+    linear-gradient(-45deg, transparent 75%, #ccc 75%) 0 0/8px 8px,
+    #fff;
+}
+
+.bew-swatch--add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  color: #868e96;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bew-swatch--add:hover {
+  background: #eef0f2;
+  transform: none;
+  box-shadow: none;
+}
+
+.bew-color-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e9ecef;
+}
+
+.bew-color-custom-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #868e96;
+}
+
+.bew-color-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}

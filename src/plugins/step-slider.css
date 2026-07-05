@@ -1,0 +1,26 @@
+.bew-slider {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #495057;
+}
+
+.bew-slider:last-child {
+  margin-bottom: 0;
+}
+
+.bew-slider-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.bew-slider-px {
+  color: #868e96;
+  font-weight: 400;
+}
+
+.bew-slider input[type="range"] {
+  width: 100%;
+}

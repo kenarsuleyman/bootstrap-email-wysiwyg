@@ -1,0 +1,72 @@
+{
+  "name": "bootstrap-email-wysiwyg",
+  "version": "0.1.0",
+  "description": "A Lexical-based WYSIWYG editor for building Bootstrap Email templates.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Süleyman Kenar <suleyman@kenar.net>",
+  "homepage": "https://github.com/kenarsuleyman/bootstrap-email-wysiwyg#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kenarsuleyman/bootstrap-email-wysiwyg.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kenarsuleyman/bootstrap-email-wysiwyg/issues"
+  },
+  "keywords": [
+    "lexical",
+    "wysiwyg",
+    "editor",
+    "bootstrap",
+    "email",
+    "react"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/bootstrap-email-wysiwyg.cjs",
+  "module": "./dist/bootstrap-email-wysiwyg.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/bootstrap-email-wysiwyg.js",
+      "require": "./dist/bootstrap-email-wysiwyg.cjs"
+    },
+    "./styles.css": "./dist/bootstrap-email-wysiwyg.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@lexical/react": "^0.36.2",
+    "@lexical/rich-text": "^0.36.2",
+    "@lexical/selection": "^0.36.2",
+    "@lexical/utils": "^0.36.2",
+    "lexical": "^0.36.2"
+  },
+  "devDependencies": {
+    "@lexical/headless": "^0.36.2",
+    "@lexical/html": "^0.36.2",
+    "@types/node": "^22.20.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.4.0"
+  }
+}

@@ -1,0 +1,52 @@
+.bew-hr-container {
+  position: relative;
+}
+
+.bew-hr {
+  border: none;
+  border-top: 1px solid #d0d5db;
+  background: transparent;
+  height: 0;
+}
+
+.bew-hr-gear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: rgba(33, 37, 41, 0.72);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.bew-hr-container:hover .bew-hr-gear,
+.bew-hr-gear:focus-visible {
+  opacity: 1;
+}
+
+.bew-hr-panel {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 30;
+  width: 220px;
+  padding: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow:
+    0 6px 24px rgba(16, 24, 40, 0.16),
+    0 1px 2px rgba(16, 24, 40, 0.06);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
