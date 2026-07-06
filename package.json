@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-email-wysiwyg",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A Lexical-based WYSIWYG editor for building Bootstrap Email templates.",
   "type": "module",
   "license": "MIT",
