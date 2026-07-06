@@ -19,6 +19,7 @@ const { BootstrapParagraphNode } = await import(
   "../src/nodes/BootstrapParagraphNode.ts"
 );
 const { toBootstrapEmailHtml } = await import("../src/export.ts");
+const { bootstrapEmailTheme } = await import("../src/theme.ts");
 
 let count = 0;
 const assert = (cond, msg) => {
@@ -92,5 +93,62 @@ const editor2 = makeEditor();
 editor2.setEditorState(editor2.parseEditorState(json));
 const fragment2 = toBootstrapEmailHtml(editor2);
 assert(fragment2 === fragment, "initialContent JSON round-trips to same HTML");
+
+// --- Text formats export clean, without editor theme classes ---------------
+// Uses the real theme so Lexical stamps `bew-text-*` classes; the exporter must
+// strip them (plus the white-space wrapper style and redundant double-wrapping).
+{
+  const themed = createHeadlessEditor({
+    namespace: "verify-export-fmt",
+    theme: bootstrapEmailTheme,
+    nodes: [
+      BootstrapParagraphNode,
+      {
+        replace: ParagraphNode,
+        with: () => new BootstrapParagraphNode(),
+        withKlass: BootstrapParagraphNode,
+      },
+    ],
+    onError: (e) => {
+      throw e;
+    },
+  });
+  const cases = {
+    bold: "<div><b>X</b></div>",
+    italic: "<div><i>X</i></div>",
+    underline: "<div><u>X</u></div>",
+    strikethrough: "<div><s>X</s></div>",
+  };
+  for (const [fmt, expected] of Object.entries(cases)) {
+    themed.update(
+      () => {
+        const p = new BootstrapParagraphNode();
+        const t = $createTextNode("X");
+        t.setFormat(fmt);
+        p.append(t);
+        $getRoot().clear().append(p);
+      },
+      { discrete: true },
+    );
+    const html = toBootstrapEmailHtml(themed, { pretty: false });
+    assert(html === expected, `${fmt} exports as ${expected} (got ${html})`);
+  }
+  // Combined formats nest cleanly; still no theme class or white-space leak.
+  themed.update(
+    () => {
+      const p = new BootstrapParagraphNode();
+      const t = $createTextNode("X");
+      t.setFormat("bold");
+      t.toggleFormat("italic");
+      p.append(t);
+      $getRoot().clear().append(p);
+    },
+    { discrete: true },
+  );
+  const combo = toBootstrapEmailHtml(themed, { pretty: false });
+  assert(!combo.includes("bew-"), "no editor theme class leaks into export");
+  assert(!combo.includes("white-space"), "no white-space wrapper style leaks");
+  assert(!/<b>\s*<strong>|<i>\s*<em>/.test(combo), "no redundant double-wrapping");
+}
 
 console.log(`\nAll ${count} assertions passed.`);

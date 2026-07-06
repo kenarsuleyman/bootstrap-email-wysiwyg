@@ -79,6 +79,10 @@ function convertInlineStyles(root: Element): void {
       const prop = propRaw.trim().toLowerCase();
       const value = rest.join(":").trim();
 
+      // Lexical stamps `white-space: pre-wrap` on text wrappers for editing;
+      // it carries no meaning in the exported email, so drop it everywhere.
+      if (prop === "white-space") continue;
+
       const colorKind =
         prop === "color"
           ? "text"
@@ -111,23 +115,50 @@ function convertInlineStyles(root: Element): void {
   });
 }
 
-/** Clean Lexical's `white-space: pre-wrap` text wrappers, unwrapping bare ones. */
-function stripTextSpans(root: Element): void {
+/** Remove editor-only theme classes (`bew-*`), dropping empty class attributes. */
+function stripEditorClasses(root: Element): void {
+  root.querySelectorAll("[class]").forEach((el) => {
+    const kept = Array.from(el.classList).filter((cls) => !cls.startsWith("bew-"));
+    if (kept.length) el.setAttribute("class", kept.join(" "));
+    else el.removeAttribute("class");
+  });
+}
+
+// Formatting tags that mean the same thing, so a nested pair is redundant.
+const FORMAT_GROUP: Record<string, string> = {
+  B: "bold",
+  STRONG: "bold",
+  I: "italic",
+  EM: "italic",
+  U: "underline",
+  INS: "underline",
+  S: "strike",
+  STRIKE: "strike",
+  DEL: "strike",
+};
+
+/**
+ * Unwrap the redundant inline wrappers Lexical produces: bare text `<span>`s,
+ * and a formatting tag nested directly inside a synonymous one — e.g.
+ * `<b><strong>x</strong></b>` → `<b>x</b>`, `<u><span>x</span></u>` → `<u>x</u>`.
+ * Runs after class/style stripping, so "bare" means truly attribute-free.
+ */
+function unwrapRedundantFormatting(root: Element): void {
   root.querySelectorAll("span").forEach((span) => {
-    const style = span.getAttribute("style") ?? "";
-    if (style.includes("white-space")) {
-      const cleaned = style
-        .split(";")
-        .map((d) => d.trim())
-        .filter((d) => d && !d.toLowerCase().startsWith("white-space"))
-        .join("; ");
-      if (cleaned) span.setAttribute("style", cleaned);
-      else span.removeAttribute("style");
-    }
     if (span.attributes.length === 0) {
       span.replaceWith(...Array.from(span.childNodes));
     }
   });
+  root
+    .querySelectorAll("b, strong, i, em, u, ins, s, strike, del")
+    .forEach((el) => {
+      const parent = el.parentElement;
+      if (!parent || el.attributes.length > 0) return;
+      const group = FORMAT_GROUP[el.tagName];
+      if (group && group === FORMAT_GROUP[parent.tagName]) {
+        el.replaceWith(...Array.from(el.childNodes));
+      }
+    });
 }
 
 function inlineString(node: ChildNode): string {
@@ -178,7 +209,8 @@ export function cleanBootstrapHtml(rawHtml: string, pretty = true): string {
   const container = document.createElement("div");
   container.innerHTML = rawHtml;
   convertInlineStyles(container);
-  stripTextSpans(container);
+  stripEditorClasses(container);
+  unwrapRedundantFormatting(container);
   if (!pretty) return container.innerHTML;
   return Array.from(container.childNodes)
     .map((node) => blockString(node, 0))
