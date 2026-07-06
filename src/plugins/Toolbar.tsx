@@ -28,6 +28,8 @@ import { insertButton } from "../nodes/insertButton";
 import { $isButtonNode } from "../nodes/ButtonNode";
 import { insertImage } from "../nodes/insertImage";
 import { insertHr } from "../nodes/insertHr";
+import { insertGrid, setColumnColor } from "../nodes/insertGrid";
+import { useGridSelection } from "./GridSelectionContext";
 import { getLastButtonStyle } from "../nodes/buttonMemory";
 import { normalizeAlign, type Align } from "../nodes/alignment";
 import { applyColor, type ColorKind } from "../nodes/applyColor";
@@ -147,6 +149,7 @@ function Dropdown({
         type="button"
         className={triggerClassName ?? "bew-tb-dropdown-trigger"}
         aria-label={ariaLabel}
+        title={ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
       >
@@ -282,8 +285,41 @@ function ButtonInsertIcon() {
   );
 }
 
+function UndoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+      />
+    </svg>
+  );
+}
+
+function RedoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"
+      />
+    </svg>
+  );
+}
+
+function GridInsertIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+      <line x1="6.3" y1="3.5" x2="6.3" y2="12.5" stroke="currentColor" strokeWidth="1.2" />
+      <line x1="9.7" y1="3.5" x2="9.7" y2="12.5" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
 export function Toolbar() {
   const [editor] = useLexicalComposerContext();
+  const { selectedColumnKey } = useGridSelection();
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
@@ -419,9 +455,12 @@ export function Toolbar() {
 
   const setColor = useCallback(
     (kind: ColorKind, token: string | null) => {
-      applyColor(editor, kind, token);
+      // A selected column takes the color on its own `col-N` div; otherwise the
+      // color applies to the text selection / current block as usual.
+      if (selectedColumnKey) setColumnColor(editor, selectedColumnKey, kind, token);
+      else applyColor(editor, kind, token);
     },
-    [editor],
+    [editor, selectedColumnKey],
   );
 
   const insertStyledButton = useCallback(() => {
@@ -438,25 +477,31 @@ export function Toolbar() {
     insertHr(editor);
   }, [editor]);
 
+  const insertGridBlock = useCallback(() => {
+    insertGrid(editor);
+  }, [editor]);
+
   return (
     <div className="bew-toolbar" role="toolbar" aria-label="Formatting">
       <button
         type="button"
         className="bew-tb-btn"
         aria-label="Undo"
+        title="Undo"
         disabled={!canUndo}
         onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}
       >
-        ↶
+        <UndoIcon />
       </button>
       <button
         type="button"
         className="bew-tb-btn"
         aria-label="Redo"
+        title="Redo"
         disabled={!canRedo}
         onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}
       >
-        ↷
+        <RedoIcon />
       </button>
 
       <span className="bew-tb-divider" />
@@ -488,6 +533,7 @@ export function Toolbar() {
         type="button"
         className={cx("bew-tb-btn", "bew-tb-btn--bold", formats.bold && "is-active")}
         aria-label="Bold"
+        title="Bold"
         aria-pressed={formats.bold}
         onClick={() => toggleFormat("bold")}
       >
@@ -497,6 +543,7 @@ export function Toolbar() {
         type="button"
         className={cx("bew-tb-btn", "bew-tb-btn--italic", formats.italic && "is-active")}
         aria-label="Italic"
+        title="Italic"
         aria-pressed={formats.italic}
         onClick={() => toggleFormat("italic")}
       >
@@ -510,6 +557,7 @@ export function Toolbar() {
           formats.underline && "is-active",
         )}
         aria-label="Underline"
+        title="Underline"
         aria-pressed={formats.underline}
         onClick={() => toggleFormat("underline")}
       >
@@ -523,6 +571,7 @@ export function Toolbar() {
           formats.strikethrough && "is-active",
         )}
         aria-label="Strikethrough"
+        title="Strikethrough"
         aria-pressed={formats.strikethrough}
         onClick={() => toggleFormat("strikethrough")}
       >
@@ -537,6 +586,7 @@ export function Toolbar() {
           type="button"
           className={cx("bew-tb-btn", align === option && "is-active")}
           aria-label={`Align ${option}`}
+          title={`Align ${option}`}
           aria-pressed={align === option}
           onClick={() => setAlignment(option)}
         >
@@ -563,7 +613,7 @@ export function Toolbar() {
         <ColorPicker onSelect={(token) => setColor("bg", token)} />
       </Dropdown>
       <Dropdown
-        ariaLabel="Border color (buttons)"
+        ariaLabel="Border color"
         triggerClassName="bew-tb-btn"
         menuClassName="bew-tb-menu--color"
         label={<BorderColorIcon />}
@@ -600,6 +650,15 @@ export function Toolbar() {
         onClick={insertSeparator}
       >
         <HrInsertIcon />
+      </button>
+      <button
+        type="button"
+        className="bew-tb-btn"
+        aria-label="Insert grid"
+        title="Insert grid (row of columns)"
+        onClick={insertGridBlock}
+      >
+        <GridInsertIcon />
       </button>
     </div>
   );

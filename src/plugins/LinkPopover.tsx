@@ -21,14 +21,10 @@ export interface LinkState {
 
 function LinkIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
       <path
-        d="M6.5 9.5l3-3M6 5.5L7.4 4.1a2.2 2.2 0 0 1 3.1 3.1L9.1 8.6M10 10.5L8.6 11.9a2.2 2.2 0 0 1-3.1-3.1L6.9 7.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="currentColor"
+        d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
       />
     </svg>
   );
