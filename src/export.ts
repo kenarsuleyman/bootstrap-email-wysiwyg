@@ -124,41 +124,55 @@ function stripEditorClasses(root: Element): void {
   });
 }
 
-// Formatting tags that mean the same thing, so a nested pair is redundant.
-const FORMAT_GROUP: Record<string, string> = {
-  B: "bold",
-  STRONG: "bold",
-  I: "italic",
-  EM: "italic",
-  U: "underline",
-  INS: "underline",
-  S: "strike",
-  STRIKE: "strike",
-  DEL: "strike",
+// Canonical Bootstrap Email inline formatting tags. Bootstrap's typography uses
+// <strong>/<em>/<u>/<s>, so normalize Lexical's <b>/<i> (and strike synonyms).
+const CANONICAL_TAG: Record<string, string> = {
+  B: "strong",
+  STRONG: "strong",
+  I: "em",
+  EM: "em",
+  U: "u",
+  INS: "u",
+  S: "s",
+  STRIKE: "s",
+  DEL: "s",
 };
 
 /**
- * Unwrap the redundant inline wrappers Lexical produces: bare text `<span>`s,
- * and a formatting tag nested directly inside a synonymous one — e.g.
- * `<b><strong>x</strong></b>` → `<b>x</b>`, `<u><span>x</span></u>` → `<u>x</u>`.
- * Runs after class/style stripping, so "bare" means truly attribute-free.
+ * Normalize the inline formatting Lexical produces to Bootstrap Email's tags:
+ * unwrap bare text `<span>`s, rename `<b>`→`<strong>` / `<i>`→`<em>` (and strike
+ * synonyms → `<s>`), and collapse a tag nested directly inside the same tag —
+ * e.g. `<b><strong>x</strong></b>` → `<strong>x</strong>`,
+ * `<u><span>x</span></u>` → `<u>x</u>`. Runs after class/style stripping, so
+ * "bare" means truly attribute-free.
  */
-function unwrapRedundantFormatting(root: Element): void {
+function normalizeFormatting(root: Element): void {
   root.querySelectorAll("span").forEach((span) => {
     if (span.attributes.length === 0) {
       span.replaceWith(...Array.from(span.childNodes));
     }
   });
-  root
-    .querySelectorAll("b, strong, i, em, u, ins, s, strike, del")
-    .forEach((el) => {
-      const parent = el.parentElement;
-      if (!parent || el.attributes.length > 0) return;
-      const group = FORMAT_GROUP[el.tagName];
-      if (group && group === FORMAT_GROUP[parent.tagName]) {
-        el.replaceWith(...Array.from(el.childNodes));
-      }
-    });
+
+  // Rename non-canonical tags (<b>, <i>, <ins>, <strike>, <del>) in place.
+  root.querySelectorAll("b, i, ins, strike, del").forEach((el) => {
+    const canonical = CANONICAL_TAG[el.tagName];
+    if (!canonical || el.tagName.toLowerCase() === canonical) return;
+    const replacement = document.createElement(canonical);
+    for (const attr of Array.from(el.attributes)) {
+      replacement.setAttribute(attr.name, attr.value);
+    }
+    replacement.append(...Array.from(el.childNodes));
+    el.replaceWith(replacement);
+  });
+
+  // Collapse a formatting tag nested directly inside the same tag.
+  root.querySelectorAll("strong, em, u, s").forEach((el) => {
+    const parent = el.parentElement;
+    if (!parent || el.attributes.length > 0) return;
+    if (parent.tagName === el.tagName) {
+      el.replaceWith(...Array.from(el.childNodes));
+    }
+  });
 }
 
 function inlineString(node: ChildNode): string {
@@ -210,7 +224,7 @@ export function cleanBootstrapHtml(rawHtml: string, pretty = true): string {
   container.innerHTML = rawHtml;
   convertInlineStyles(container);
   stripEditorClasses(container);
-  unwrapRedundantFormatting(container);
+  normalizeFormatting(container);
   if (!pretty) return container.innerHTML;
   return Array.from(container.childNodes)
     .map((node) => blockString(node, 0))

@@ -114,8 +114,8 @@ assert(fragment2 === fragment, "initialContent JSON round-trips to same HTML");
     },
   });
   const cases = {
-    bold: "<div><b>X</b></div>",
-    italic: "<div><i>X</i></div>",
+    bold: "<div><strong>X</strong></div>",
+    italic: "<div><em>X</em></div>",
     underline: "<div><u>X</u></div>",
     strikethrough: "<div><s>X</s></div>",
   };
@@ -146,9 +146,13 @@ assert(fragment2 === fragment, "initialContent JSON round-trips to same HTML");
     { discrete: true },
   );
   const combo = toBootstrapEmailHtml(themed, { pretty: false });
+  assert(
+    combo === "<div><em><strong>X</strong></em></div>",
+    `combined formats nest cleanly (got ${combo})`,
+  );
   assert(!combo.includes("bew-"), "no editor theme class leaks into export");
   assert(!combo.includes("white-space"), "no white-space wrapper style leaks");
-  assert(!/<b>\s*<strong>|<i>\s*<em>/.test(combo), "no redundant double-wrapping");
+  assert(!/<\/?[bi]>/.test(combo), "uses Bootstrap <strong>/<em>, not <b>/<i>");
 }
 
 console.log(`\nAll ${count} assertions passed.`);
