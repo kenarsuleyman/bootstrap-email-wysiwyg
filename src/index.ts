@@ -52,6 +52,37 @@ export {
   TOGGLE_LINK_COMMAND,
 } from "@lexical/link";
 
+export { RowNode, $createRowNode, $isRowNode } from "./nodes/RowNode";
+export type { SerializedRowNode } from "./nodes/RowNode";
+export { ColumnNode, $createColumnNode, $isColumnNode } from "./nodes/ColumnNode";
+export type { SerializedColumnNode } from "./nodes/ColumnNode";
+export {
+  insertGrid,
+  addGridColumn,
+  removeGridColumn,
+  adjustGridColumn,
+  $getSelectedColumn,
+  $createGridRow,
+  $addColumn,
+  $removeColumn,
+  $setColumnSpan,
+  setColumnColor,
+  DEFAULT_GRID_COLUMNS,
+} from "./nodes/insertGrid";
+export {
+  GRID_UNITS,
+  MAX_COLUMNS,
+  distributeSpans,
+  resizeSpans,
+  clampColumnCount,
+} from "./nodes/gridLayout";
+export { GridPlugin } from "./plugins/GridPlugin";
+export { GridControls } from "./plugins/GridControls";
+export {
+  GridSelectionProvider,
+  useGridSelection,
+} from "./plugins/GridSelectionContext";
+
 export { HrNode, $createHrNode, $isHrNode } from "./nodes/HrNode";
 export type { HrPayload, SerializedHrNode } from "./nodes/HrNode";
 export { insertHr } from "./nodes/insertHr";

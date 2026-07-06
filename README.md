@@ -1,7 +1,7 @@
 # bootstrap-email-wysiwyg
 
 A [Lexical](https://lexical.dev)-based WYSIWYG editor for authoring
-[Bootstrap Email](https://bootstrap-email.com) templates. You edit visually; it
+[Bootstrap Email](https://bootstrapemail.com) templates. You edit visually; it
 outputs clean, class-based Bootstrap Email source HTML that you feed to the
 Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
 
@@ -18,6 +18,12 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
 - 🔗 **Inline links** — wrap selected text (or insert new link text) via a
   popover; bare domains get an `https://` prefix and unsafe schemes (e.g.
   `javascript:`) are rejected. Buttons and images link via their own href.
+- 🔳 **Grid layout** — insert Bootstrap Email rows of columns (`row` /
+  `col-N`). Add, remove, or resize columns and the widths auto-balance to
+  always total 12 (e.g. `6·6` + one column → `4·4·4`; uneven counts pack as
+  evenly as possible, like `2·2·2·3·3` for five). Select a column (click its
+  top/bottom edge) to color the column itself — text / background / border
+  land on the `col-N` div.
 - 🔌 **Controlled or headless** — `onChange`, `initialContent`, an imperative
   `ref`, and framework-free command functions for building your own UI.
 - 📦 **Typed** — ships TypeScript declarations.
@@ -237,7 +243,7 @@ Attach a `ref` of type `BootstrapEmailEditorHandle`:
 | Inline         | Bold, italic, underline, strikethrough                                   | `<strong>` `<em>` `<u>` `<s>`            |
 | Alignment      | Left, center, right, justify                                             | `text-*` (or `ax-*` for buttons)         |
 | Colors         | Text, background, border (buttons) — palette + custom                    | `text-*`, `bg-*`, `border-*`             |
-| Insert         | Link, button, image (from URL), separator                               | `<a href>`, `btn`, `img-fluid`, `<hr>`   |
+| Insert         | Link, button, image (from URL), separator, grid                         | `<a href>`, `btn`, `img-fluid`, `<hr>`, `row`/`col-N` |
 
 Colors apply to the selected text (as a span), the current block, or a focused
 button, depending on the selection. The **link** button opens a popover:
@@ -250,6 +256,21 @@ button, depending on the selection. The **link** button opens a popover:
 
 Images and separators show an inline **gear** overlay for sizing / spacing; the
 image gear also has a **Link** field that wraps the exported `<img>` in an `<a>`.
+
+The **grid** button inserts a two-column row. The grid is then edited by hover:
+pointing at a column reveals a pill at its top-right — a width stepper
+(`−  6  +`) and a delete (`×`) — and a round `+` button centered on the row's
+right edge adds a column. Every change re-balances the row so the column widths
+always total 12 — adding a column to `6·6` yields `4·4·4`, widening one of
+`4·4·4` to 6 yields `6·3·3`, and counts that don't divide evenly pack as close
+as possible (five columns → `2·2·2·3·3`). A row holds at most 12 columns;
+deleting the last one removes the row.
+
+**Coloring a column:** click a column's top or bottom edge to **select** it —
+it's highlighted and its pill stays pinned. While a column is selected, the
+toolbar's text / background / border color pickers target the **column** (the
+`col-N` div gets `text-*` / `bg-*` / `border-*` classes) instead of the content
+inside it. Click inside the column body to deselect.
 
 ## Headless / custom toolbar
 
@@ -288,6 +309,11 @@ import {
   insertButton,
   insertImage,
   insertHr,
+  insertGrid,
+  addGridColumn,
+  removeGridColumn,
+  adjustGridColumn,
+  setColumnColor,
   applyColor,
   adjustFontSize,
 } from "bootstrap-email-wysiwyg";
@@ -314,9 +340,19 @@ insertImage(editor, {
 
 insertHr(editor, { top: "5", bottom: "5" }); // margin keys (mt-5 / mb-5 = 20px)
 
+insertGrid(editor, 2);          // a row of N evenly-sized columns (default 2)
+addGridColumn(editor);          // add a column to the current row, re-balance
+removeGridColumn(editor);       // remove the current column (row if it's last)
+adjustGridColumn(editor, 1);    // widen (+) / narrow (−) the current column
+setColumnColor(editor, columnKey, "bg", "blue-500"); // color a column's own div
+
 applyColor(editor, "text", "blue-500");  // "text" | "bg" | "border"; token or "#hex" or null to clear
 adjustFontSize(editor, "increase");      // "increase" | "decrease"
 ```
+
+The grid width math is exported as pure helpers too — `distributeSpans(n)`
+(even split totalling 12) and `resizeSpans(spans, index, target)` (set one
+column, re-balance the rest) — for building your own grid controls.
 
 `$`-prefixed variants (`$applyColor`, `$adjustFontSize`) run inside an existing
 `editor.update()` if you're composing your own updates.
@@ -338,6 +374,8 @@ document to Bootstrap Email markup:
 | `LinkNode`               | `<a href="…">` (inline text link)                     |
 | `ImageNode`              | `<img class="img-fluid \| w-… \| max-w-…">`, optionally wrapped in `<a href>` (decorator) |
 | `HrNode`                 | `<hr class="mt-… mb-…">` (decorator)                   |
+| `RowNode`                | `<div class="row">` — grid row, holds only columns     |
+| `ColumnNode`             | `<div class="col-N">` — grid column (N = width in 12ths), with optional own `text-*`/`bg-*`/`border-*` |
 
 On export, Lexical's raw HTML is cleaned (text-wrapper spans removed) and inline
 colors/sizes are converted to Bootstrap Email classes. Editor state serializes to
@@ -369,6 +407,7 @@ Behavior is covered by headless verification scripts:
 ```sh
 npx tsx scripts/verify-export.mjs   # export API + JSON round-trip
 npx tsx scripts/verify-color.mjs    # color apply + class output
+npx tsx scripts/verify-grid.mjs     # grid width math + row/column export
 # …and verify-button / align / fontsize / image / hr / link
 ```
 

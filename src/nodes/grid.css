@@ -1,0 +1,200 @@
+/* Editing-surface styling for grid rows/columns. The exported email uses the
+   raw `.row` / `.col-N` classes, which the bootstrap-email compiler expands
+   into table markup — these rules are only for the WYSIWYG surface. */
+
+.bew-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  margin: 0 0 0.5rem;
+}
+
+.bew-col {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed #ced4da;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  transition: outline-color 0.12s ease, background-color 0.12s ease;
+}
+
+/* Transparent hit strips along the top and bottom edges: they show a pointer
+   cursor (hinting the column is selectable) and extend the clickable zone a
+   couple pixels past the edge — all without shifting the column's content
+   (absolutely positioned, so they take no layout space). */
+.bew-col::before,
+.bew-col::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11px;
+  cursor: pointer;
+}
+
+.bew-col::before {
+  top: -2px;
+}
+
+.bew-col::after {
+  bottom: -2px;
+}
+
+/* Collapse the doubled border between adjacent columns. */
+.bew-col + .bew-col {
+  border-left: none;
+}
+
+.bew-col:hover {
+  background-color: rgba(13, 110, 253, 0.03);
+}
+
+/* Highlight the column the cursor is currently editing. */
+.bew-col:focus-within {
+  outline-color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Keep line spacing tidy inside a column. */
+.bew-col > .bew-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Hover controls overlay ---------------------------------------------- */
+
+.bew-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Highlight box drawn over the currently selected column. */
+.bew-grid-colsel {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #0d6efd;
+  border-radius: 2px;
+  background: rgba(13, 110, 253, 0.06);
+  pointer-events: none;
+}
+
+/* Column pill: width steppers + delete, centered on the column's top edge
+   (position + transform are set inline from the measured column box). */
+.bew-grid-colctrl {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(16, 24, 40, 0.14),
+    0 1px 2px rgba(16, 24, 40, 0.06);
+  pointer-events: auto;
+}
+
+/* Invisible bridge extending down to the column, so moving the pointer from the
+   column up onto the pill never crosses an empty gap (which would hide it). */
+.bew-grid-colctrl::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 10px;
+}
+
+.bew-grid-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #495057;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.bew-grid-btn:hover:not(:disabled) {
+  background: #eef0f2;
+  color: #212529;
+}
+
+.bew-grid-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bew-grid-btn--danger {
+  color: #dc3545;
+}
+
+.bew-grid-btn--danger:hover:not(:disabled) {
+  background: #fdecec;
+  color: #c02a37;
+}
+
+.bew-grid-span {
+  min-width: 20px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #212529;
+  user-select: none;
+}
+
+.bew-grid-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: #e3e6ea;
+}
+
+/* Round add-column button, centered on the row's right edge. */
+.bew-grid-addcol {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #cfe0ff;
+  border-radius: 50%;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.35);
+  pointer-events: auto;
+  transition: background-color 0.12s ease, transform 0.08s ease;
+}
+
+.bew-grid-addcol:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.bew-grid-addcol:active:not(:disabled) {
+  transform: translate(-50%, -50%) scale(0.92);
+}
+
+.bew-grid-addcol:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}

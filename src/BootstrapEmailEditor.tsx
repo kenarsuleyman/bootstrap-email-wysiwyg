@@ -24,8 +24,13 @@ import { ButtonNode } from "./nodes/ButtonNode";
 import { BootstrapParagraphNode } from "./nodes/BootstrapParagraphNode";
 import { ImageNode } from "./nodes/ImageNode";
 import { HrNode } from "./nodes/HrNode";
+import { RowNode } from "./nodes/RowNode";
+import { ColumnNode } from "./nodes/ColumnNode";
 import { isSafeLinkUrl } from "./nodes/insertLink";
 import { Toolbar } from "./plugins/Toolbar";
+import { GridPlugin } from "./plugins/GridPlugin";
+import { GridControls } from "./plugins/GridControls";
+import { GridSelectionProvider } from "./plugins/GridSelectionContext";
 import {
   toBootstrapEmailHtml,
   type BootstrapEmailHtmlOptions,
@@ -165,6 +170,8 @@ export const BootstrapEmailEditor = forwardRef<
       ImageNode,
       HrNode,
       LinkNode,
+      RowNode,
+      ColumnNode,
       BootstrapParagraphNode,
       // Swap the core paragraph for our Bootstrap Email `<div>` variant.
       {
@@ -178,6 +185,7 @@ export const BootstrapEmailEditor = forwardRef<
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
+      <GridSelectionProvider>
       <div className="bew-editor-shell">
         {toolbar && <Toolbar />}
         <div className="bew-editor-body">
@@ -188,13 +196,16 @@ export const BootstrapEmailEditor = forwardRef<
             placeholder={<div className="bew-placeholder">{placeholder}</div>}
             ErrorBoundary={LexicalErrorBoundary}
           />
+          <GridControls />
         </div>
         <HistoryPlugin />
         <LinkPlugin validateUrl={isSafeLinkUrl} />
+        <GridPlugin />
       </div>
       <EditorRefPlugin editorRef={editorRef} />
       {onChange && <ChangeEmitter onChange={onChange} />}
       {children}
+      </GridSelectionProvider>
     </LexicalComposer>
   );
 });
