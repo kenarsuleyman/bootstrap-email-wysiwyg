@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getNodeByKey } from "lexical";
 import type { NodeKey } from "lexical";
 
 import { SIZE_STEPS, imagePreviewStyle, type ImageMode } from "../imageSize";
 import { StepSlider } from "../plugins/StepSlider";
+import { isSafeLinkUrl, normalizeLinkUrl } from "./insertLink";
 import { $isImageNode, type ImageNode } from "./ImageNode";
 import "./image.css";
 
@@ -15,6 +16,7 @@ interface ImageComponentProps {
   mode: ImageMode;
   width: string | null;
   height: string | null;
+  link: string;
 }
 
 const MODES: { mode: ImageMode; label: string }[] = [
@@ -30,15 +32,32 @@ export function ImageComponent({
   mode,
   width,
   height,
+  link,
 }: ImageComponentProps) {
   const [editor] = useLexicalComposerContext();
   const [open, setOpen] = useState(false);
+  const [linkDraft, setLinkDraft] = useState(link);
+
+  // Keep the draft in sync when the node's link changes (undo/redo, etc.).
+  useEffect(() => setLinkDraft(link), [link]);
 
   const update = (mutate: (node: ImageNode) => void) => {
     editor.update(() => {
       const node = $getNodeByKey(nodeKey);
       if ($isImageNode(node)) mutate(node);
     });
+  };
+
+  // Commit the link on blur / Enter: empty clears it, unsafe URLs are ignored.
+  const applyLink = () => {
+    const trimmed = linkDraft.trim();
+    if (trimmed === "") {
+      update((node) => node.setLink(""));
+    } else if (isSafeLinkUrl(trimmed)) {
+      const normalized = normalizeLinkUrl(trimmed);
+      setLinkDraft(normalized);
+      update((node) => node.setLink(normalized));
+    }
   };
 
   const changeMode = (next: ImageMode) => {
@@ -152,6 +171,23 @@ export function ImageComponent({
               onChange={(key) => update((node) => node.setWidth(key))}
             />
           )}
+
+          <label className="bew-image-link">
+            <span>Link (optional)</span>
+            <input
+              type="url"
+              value={linkDraft}
+              placeholder="https://example.com"
+              onChange={(event) => setLinkDraft(event.target.value)}
+              onBlur={applyLink}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyLink();
+                }
+              }}
+            />
+          </label>
         </div>
       )}
     </div>

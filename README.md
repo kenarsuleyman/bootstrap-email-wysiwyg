@@ -12,9 +12,12 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
   complete Bootstrap Email color scale, plus custom colors.
 - 🔤 **Type scale** — increase/decrease font size across `text-xs … text-7xl`.
 - 🖼️ **Images & separators** — insert from URL with an inline settings gear
-  (fluid / fixed / max-width sizing; configurable rule spacing).
+  (fluid / fixed / max-width sizing; optional link; configurable rule spacing).
 - 🔘 **Buttons** — Bootstrap Email buttons with independent text/bg/border color
   and size; remembers your last styling.
+- 🔗 **Inline links** — wrap selected text (or insert new link text) via a
+  popover; bare domains get an `https://` prefix and unsafe schemes (e.g.
+  `javascript:`) are rejected. Buttons and images link via their own href.
 - 🔌 **Controlled or headless** — `onChange`, `initialContent`, an imperative
   `ref`, and framework-free command functions for building your own UI.
 - 📦 **Typed** — ships TypeScript declarations.
@@ -234,11 +237,19 @@ Attach a `ref` of type `BootstrapEmailEditorHandle`:
 | Inline         | Bold, italic, underline, strikethrough                                   | `<strong>` `<em>` `<u>` `<s>`            |
 | Alignment      | Left, center, right, justify                                             | `text-*` (or `ax-*` for buttons)         |
 | Colors         | Text, background, border (buttons) — palette + custom                    | `text-*`, `bg-*`, `border-*`             |
-| Insert         | Button, image (from URL), separator                                      | `btn`, `img-fluid`, `<hr>`               |
+| Insert         | Link, button, image (from URL), separator                               | `<a href>`, `btn`, `img-fluid`, `<hr>`   |
 
 Colors apply to the selected text (as a span), the current block, or a focused
-button, depending on the selection. Images and separators show an inline **gear**
-overlay for sizing / spacing.
+button, depending on the selection. The **link** button opens a popover:
+
+- **Text selected** → wraps it in a link.
+- **Empty cursor** → also asks for optional display text (defaults to the URL).
+- **Cursor already in a link** → prefills the URL for editing; **Remove** unlinks.
+- **Cursor inside a button** → sets the button's own `href` (a button is already
+  an `<a>`, so it's never wrapped in a nested link).
+
+Images and separators show an inline **gear** overlay for sizing / spacing; the
+image gear also has a **Link** field that wraps the exported `<img>` in an `<a>`.
 
 ## Headless / custom toolbar
 
@@ -324,7 +335,8 @@ document to Bootstrap Email markup:
 | ------------------------ | ----------------------------------------------------- |
 | `BootstrapParagraphNode` | `<div>` line, with alignment/color/size classes       |
 | `ButtonNode`             | `<a class="btn btn-…">` (inline)                       |
-| `ImageNode`              | `<img class="img-fluid \| w-… \| max-w-…">` (decorator) |
+| `LinkNode`               | `<a href="…">` (inline text link)                     |
+| `ImageNode`              | `<img class="img-fluid \| w-… \| max-w-…">`, optionally wrapped in `<a href>` (decorator) |
 | `HrNode`                 | `<hr class="mt-… mb-…">` (decorator)                   |
 
 On export, Lexical's raw HTML is cleaned (text-wrapper spans removed) and inline
@@ -357,7 +369,7 @@ Behavior is covered by headless verification scripts:
 ```sh
 npx tsx scripts/verify-export.mjs   # export API + JSON round-trip
 npx tsx scripts/verify-color.mjs    # color apply + class output
-# …and verify-button / align / fontsize / image / hr
+# …and verify-button / align / fontsize / image / hr / link
 ```
 
 Only `dist/` is published; the `dev/` playground stays in the repo.
@@ -365,7 +377,7 @@ Only `dist/` is published; the `dev/` playground stays in the repo.
 ## Roadmap
 
 - Configurable toolbar (feature flags), `readOnly` mode
-- Inline links and lists (`<ul>` / `<ol>`)
+- Lists (`<ul>` / `<ol>`)
 - Controlled `value` and HTML seeding / import
 - Framework-agnostic core + Vue/Svelte/vanilla wrappers
 

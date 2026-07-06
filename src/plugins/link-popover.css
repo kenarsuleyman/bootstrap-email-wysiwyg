@@ -1,0 +1,79 @@
+.bew-link-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  width: 240px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow:
+    0 6px 24px rgba(16, 24, 40, 0.12),
+    0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+.bew-link-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.bew-link-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #212529;
+  outline: none;
+}
+
+.bew-link-field input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+.bew-link-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.bew-link-btn {
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bew-link-btn--apply {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.bew-link-btn--apply:hover {
+  background: #0b5ed7;
+}
+
+.bew-link-btn--remove {
+  background: transparent;
+  border-color: #ced4da;
+  color: #dc3545;
+}
+
+.bew-link-btn--remove:hover {
+  background: #f8d7da;
+  border-color: #dc3545;
+}

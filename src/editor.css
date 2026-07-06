@@ -50,6 +50,15 @@
   text-decoration: underline line-through;
 }
 
+/* Inline links. Styled by descendant selector (not a Lexical theme class) so
+   no editor-only class leaks into the exported email HTML. `.btn` anchors are
+   excluded — those are buttons, styled below. */
+.bew-content-editable a:not(.btn) {
+  color: #0d6efd;
+  text-decoration: underline;
+  cursor: text;
+}
+
 /* Approximate Bootstrap button styling inside the editor. The published email
    HTML uses the raw `.btn` classes, which the bootstrap-email compiler expands
    into table markup — these rules are only for the editing surface. */

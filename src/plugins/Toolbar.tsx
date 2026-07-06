@@ -21,9 +21,11 @@ import {
   type ElementFormatType,
   type TextFormatType,
 } from "lexical";
-import { mergeRegister } from "@lexical/utils";
+import { $findMatchingParent, mergeRegister } from "@lexical/utils";
+import { $isLinkNode } from "@lexical/link";
 
 import { insertButton } from "../nodes/insertButton";
+import { $isButtonNode } from "../nodes/ButtonNode";
 import { insertImage } from "../nodes/insertImage";
 import { insertHr } from "../nodes/insertHr";
 import { getLastButtonStyle } from "../nodes/buttonMemory";
@@ -31,6 +33,7 @@ import { normalizeAlign, type Align } from "../nodes/alignment";
 import { applyColor, type ColorKind } from "../nodes/applyColor";
 import { adjustFontSize } from "../nodes/applyFontSize";
 import { ColorPicker } from "./ColorPicker";
+import { LinkPopover, type LinkState } from "./LinkPopover";
 import "./toolbar.css";
 
 function cx(...classes: (string | false | undefined)[]): string {
@@ -288,6 +291,13 @@ export function Toolbar() {
     strikethrough: false,
   });
   const [align, setAlign] = useState<Align>("left");
+  const [link, setLink] = useState<LinkState>({
+    active: false,
+    url: "",
+    inButton: false,
+    needsDisplayText: false,
+    canRemove: false,
+  });
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -303,6 +313,46 @@ export function Toolbar() {
     });
 
     const anchorNode = selection.anchor.getNode();
+    // A button is itself an <a>, so its own href is the link target. Detect it
+    // first, before checking for a wrapping LinkNode.
+    const buttonNode = $isButtonNode(anchorNode)
+      ? anchorNode
+      : $findMatchingParent(anchorNode, $isButtonNode);
+    if ($isButtonNode(buttonNode)) {
+      const href = buttonNode.getHref();
+      const hasHref = href !== "" && href !== "#";
+      setLink({
+        active: hasHref,
+        url: hasHref ? href : "",
+        inButton: true,
+        needsDisplayText: false,
+        canRemove: hasHref,
+      });
+    } else {
+      const linkNode = $isLinkNode(anchorNode)
+        ? anchorNode
+        : $findMatchingParent(anchorNode, $isLinkNode);
+      if ($isLinkNode(linkNode)) {
+        setLink({
+          active: true,
+          url: linkNode.getURL(),
+          inButton: false,
+          needsDisplayText: false,
+          canRemove: true,
+        });
+      } else {
+        // No link/button context: when the cursor is collapsed there's no text
+        // to wrap, so the popover collects display text too.
+        setLink({
+          active: false,
+          url: "",
+          inButton: false,
+          needsDisplayText: selection.isCollapsed(),
+          canRemove: false,
+        });
+      }
+    }
+
     const element =
       anchorNode.getKey() === "root"
         ? anchorNode
@@ -523,6 +573,7 @@ export function Toolbar() {
 
       <span className="bew-tb-divider" />
 
+      <LinkPopover editor={editor} state={link} />
       <button
         type="button"
         className="bew-tb-btn"

@@ -85,3 +85,30 @@
   color: #0d6efd;
 }
 
+.bew-image-link {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.bew-image-link input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #212529;
+  outline: none;
+}
+
+.bew-image-link input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+

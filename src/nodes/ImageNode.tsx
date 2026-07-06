@@ -19,6 +19,8 @@ export interface ImagePayload {
   mode?: ImageMode;
   width?: string | null;
   height?: string | null;
+  /** Optional link — wraps the exported `<img>` in an `<a href>`. */
+  link?: string;
   key?: NodeKey;
 }
 
@@ -29,6 +31,7 @@ export type SerializedImageNode = Spread<
     mode: ImageMode;
     width: string | null;
     height: string | null;
+    link: string;
   },
   SerializedLexicalNode
 >;
@@ -44,6 +47,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
   __mode: ImageMode;
   __width: string | null;
   __height: string | null;
+  __link: string;
 
   static getType(): string {
     return "bootstrap-image";
@@ -56,6 +60,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
       node.__mode,
       node.__width,
       node.__height,
+      node.__link,
       node.__key,
     );
   }
@@ -66,6 +71,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
     mode: ImageMode = "fluid",
     width: string | null = null,
     height: string | null = null,
+    link = "",
     key?: NodeKey,
   ) {
     super(key);
@@ -74,6 +80,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
     this.__mode = mode;
     this.__width = width;
     this.__height = height;
+    this.__link = link;
   }
 
   static importJSON(serializedNode: SerializedImageNode): ImageNode {
@@ -83,6 +90,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
       mode: serializedNode.mode,
       width: serializedNode.width,
       height: serializedNode.height,
+      link: serializedNode.link ?? "",
     });
   }
 
@@ -95,6 +103,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
       mode: this.__mode,
       width: this.__width,
       height: this.__height,
+      link: this.__link,
     };
   }
 
@@ -105,15 +114,22 @@ export class ImageNode extends DecoratorNode<ReactNode> {
   }
 
   exportDOM(): DOMExportOutput {
-    const element = document.createElement("img");
-    element.setAttribute("src", this.__src);
-    element.setAttribute("alt", this.__alt);
-    element.className = imageClasses(
-      this.__mode,
-      this.__width,
-      this.__height,
-    ).join(" ");
-    return { element };
+    const img = document.createElement("img");
+    img.setAttribute("src", this.__src);
+    img.setAttribute("alt", this.__alt);
+    img.className = imageClasses(this.__mode, this.__width, this.__height).join(
+      " ",
+    );
+
+    // A linked image is wrapped in an anchor in the exported email HTML.
+    const link = this.__link.trim();
+    if (link) {
+      const anchor = document.createElement("a");
+      anchor.setAttribute("href", link);
+      anchor.appendChild(img);
+      return { element: anchor };
+    }
+    return { element: img };
   }
 
   // --- Accessors -----------------------------------------------------------
@@ -168,6 +184,16 @@ export class ImageNode extends DecoratorNode<ReactNode> {
     return writable;
   }
 
+  getLink(): string {
+    return this.getLatest().__link;
+  }
+
+  setLink(link: string): this {
+    const writable = this.getWritable();
+    writable.__link = link;
+    return writable;
+  }
+
   // --- Rendering -----------------------------------------------------------
 
   createDOM(): HTMLElement {
@@ -193,6 +219,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
         mode={this.__mode}
         width={this.__width}
         height={this.__height}
+        link={this.__link}
       />
     );
   }
@@ -204,14 +231,27 @@ function $convertImageElement(domNode: HTMLElement): DOMConversionOutput | null 
   if (!src) return null;
   const alt = img.getAttribute("alt") ?? "";
   const { mode, width, height } = parseImageClasses(Array.from(img.classList));
-  return { node: $createImageNode({ src, alt, mode, width, height }) };
+  // An <img> wrapped in an <a> carries its link on the parent anchor.
+  const parent = img.parentElement;
+  const link =
+    parent && parent.tagName === "A"
+      ? (parent.getAttribute("href") ?? "")
+      : "";
+  return { node: $createImageNode({ src, alt, mode, width, height, link }) };
 }
 
 export function $createImageNode(payload: ImagePayload): ImageNode {
-  const { src, alt = "", mode = "fluid", width = null, height = null, key } =
-    payload;
+  const {
+    src,
+    alt = "",
+    mode = "fluid",
+    width = null,
+    height = null,
+    link = "",
+    key,
+  } = payload;
   return $applyNodeReplacement(
-    new ImageNode(src, alt, mode, width, height, key),
+    new ImageNode(src, alt, mode, width, height, link, key),
   );
 }
 

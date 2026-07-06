@@ -10,10 +10,12 @@ import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { InitialConfigType } from "@lexical/react/LexicalComposer";
 
+import { LinkNode } from "@lexical/link";
 import { $getRoot, type LexicalEditor } from "lexical";
 import { ParagraphNode } from "lexical";
 
@@ -22,6 +24,7 @@ import { ButtonNode } from "./nodes/ButtonNode";
 import { BootstrapParagraphNode } from "./nodes/BootstrapParagraphNode";
 import { ImageNode } from "./nodes/ImageNode";
 import { HrNode } from "./nodes/HrNode";
+import { isSafeLinkUrl } from "./nodes/insertLink";
 import { Toolbar } from "./plugins/Toolbar";
 import {
   toBootstrapEmailHtml,
@@ -161,6 +164,7 @@ export const BootstrapEmailEditor = forwardRef<
       ButtonNode,
       ImageNode,
       HrNode,
+      LinkNode,
       BootstrapParagraphNode,
       // Swap the core paragraph for our Bootstrap Email `<div>` variant.
       {
@@ -186,6 +190,7 @@ export const BootstrapEmailEditor = forwardRef<
           />
         </div>
         <HistoryPlugin />
+        <LinkPlugin validateUrl={isSafeLinkUrl} />
       </div>
       <EditorRefPlugin editorRef={editorRef} />
       {onChange && <ChangeEmitter onChange={onChange} />}

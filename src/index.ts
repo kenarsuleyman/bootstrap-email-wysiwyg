@@ -21,7 +21,7 @@ export type {
   ButtonPayload,
   SerializedButtonNode,
 } from "./nodes/ButtonNode";
-export { insertButton } from "./nodes/insertButton";
+export { insertButton, setButtonHref } from "./nodes/insertButton";
 export type { InsertButtonOptions } from "./nodes/insertButton";
 export { getLastButtonStyle, rememberButtonStyle } from "./nodes/buttonMemory";
 export type { ButtonStyle } from "./nodes/buttonMemory";
@@ -36,6 +36,21 @@ export {
   sizeKeyToPx,
 } from "./imageSize";
 export type { ImageMode, SizeStep } from "./imageSize";
+
+export {
+  toggleLink,
+  insertLinkWithText,
+  isSafeLinkUrl,
+  normalizeLinkUrl,
+} from "./nodes/insertLink";
+export { LinkPopover } from "./plugins/LinkPopover";
+export type { LinkState } from "./plugins/LinkPopover";
+export {
+  LinkNode,
+  $createLinkNode,
+  $isLinkNode,
+  TOGGLE_LINK_COMMAND,
+} from "@lexical/link";
 
 export { HrNode, $createHrNode, $isHrNode } from "./nodes/HrNode";
 export type { HrPayload, SerializedHrNode } from "./nodes/HrNode";
