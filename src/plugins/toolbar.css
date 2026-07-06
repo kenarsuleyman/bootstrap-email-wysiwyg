@@ -109,7 +109,9 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  z-index: 20;
+  /* Above the grid controls overlay (z-index 25) so color menus, which open
+     over the editor body, aren't covered by a selected column's highlight. */
+  z-index: 40;
   min-width: 180px;
   padding: 6px;
   border: 1px solid #e9ecef;
