@@ -4,7 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BootstrapEmailEditor,
   type BootstrapEmailEditorHandle,
+  type MergeTag,
 } from "../src";
+
+// A few sample merge tags so the toolbar's merge-tag dropdown is exercised.
+// The `isLink` ones also show in the link popover / image link pickers.
+const MERGE_TAGS: MergeTag[] = [
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
+  { key: "email", label: "Email" },
+  { key: "company", label: "Company" },
+  { key: "profile_url", label: "Profile URL", isLink: true },
+  { key: "unsubscribe_url", label: "Unsubscribe URL", isLink: true },
+];
 
 export function App() {
   const editorRef = useRef<BootstrapEmailEditorHandle>(null);
@@ -37,7 +49,11 @@ export function App() {
       <div className="demo-layout">
         <section className="demo-pane">
           <div className="demo-pane-title">Editor</div>
-          <BootstrapEmailEditor ref={editorRef} onChange={refresh} />
+          <BootstrapEmailEditor
+            ref={editorRef}
+            onChange={refresh}
+            mergeTags={MERGE_TAGS}
+          />
         </section>
 
         <section className="demo-pane">

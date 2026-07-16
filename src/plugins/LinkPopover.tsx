@@ -4,6 +4,10 @@ import type { LexicalEditor } from "lexical";
 import { toggleLink, insertLinkWithText } from "../nodes/insertLink";
 import { setButtonHref } from "../nodes/insertButton";
 import { useLabels } from "../i18n";
+import {
+  MergeTagLinkPicker,
+  insertAtInputCaret,
+} from "./MergeTagLinkPicker";
 import "./link-popover.css";
 
 /** Selection context the toolbar computes to drive the link popover. */
@@ -125,13 +129,20 @@ export function LinkPopover({ editor, state }: LinkPopoverProps) {
         >
           <label className="bew-link-field">
             <span>{labels.url}</span>
-            <input
-              ref={urlInputRef}
-              type="url"
-              value={url}
-              placeholder={labels.urlPlaceholder}
-              onChange={(event) => setUrl(event.target.value)}
-            />
+            <div className="bew-link-input-row">
+              <input
+                ref={urlInputRef}
+                type="url"
+                value={url}
+                placeholder={labels.urlPlaceholder}
+                onChange={(event) => setUrl(event.target.value)}
+              />
+              <MergeTagLinkPicker
+                onPick={(key) =>
+                  insertAtInputCaret(urlInputRef, url, setUrl, `{{${key}}}`)
+                }
+              />
+            </div>
           </label>
 
           {state.needsDisplayText && (

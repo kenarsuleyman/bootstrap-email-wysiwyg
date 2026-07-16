@@ -19,6 +19,8 @@ import { LinkNode } from "@lexical/link";
 import { $getRoot, type LexicalEditor } from "lexical";
 import { ParagraphNode } from "lexical";
 
+import { BootstrapLinkNode } from "./nodes/BootstrapLinkNode";
+
 import { bootstrapEmailTheme } from "./theme";
 import { ButtonNode } from "./nodes/ButtonNode";
 import { BootstrapParagraphNode } from "./nodes/BootstrapParagraphNode";
@@ -26,11 +28,13 @@ import { ImageNode } from "./nodes/ImageNode";
 import { HrNode } from "./nodes/HrNode";
 import { RowNode } from "./nodes/RowNode";
 import { ColumnNode } from "./nodes/ColumnNode";
+import { MergeTagNode } from "./nodes/MergeTagNode";
 import { isSafeLinkUrl } from "./nodes/insertLink";
 import { Toolbar } from "./plugins/Toolbar";
 import { GridPlugin } from "./plugins/GridPlugin";
 import { GridControls } from "./plugins/GridControls";
 import { GridSelectionProvider } from "./plugins/GridSelectionContext";
+import { MergeTagProvider, type MergeTag } from "./plugins/MergeTagContext";
 import {
   toBootstrapEmailHtml,
   type BootstrapEmailHtmlOptions,
@@ -70,6 +74,16 @@ export interface BootstrapEmailEditorProps {
    * localization. Missing keys fall back to the English defaults.
    */
   labels?: Partial<EditorLabels>;
+  /**
+   * Merge tags the user can insert as atomic `{{key}}` tokens. When at least one
+   * is defined, the toolbar shows a merge-tag dropdown listing their `label`s.
+   */
+  mergeTags?: MergeTag[];
+  /**
+   * Optional per-key override of merge-tag display `label`s (for localization),
+   * mirroring `labels`. Missing keys keep the definition's own label.
+   */
+  mergeTagLabels?: Record<string, string>;
   /** Show the built-in formatting toolbar. Defaults to true. */
   toolbar?: boolean;
   /** Seed the editor from a serialized state (as produced by `getJson`). */
@@ -134,6 +148,8 @@ export const BootstrapEmailEditor = forwardRef<
   {
     placeholder,
     labels,
+    mergeTags,
+    mergeTagLabels,
     toolbar = true,
     initialContent,
     onChange,
@@ -184,14 +200,27 @@ export const BootstrapEmailEditor = forwardRef<
       ImageNode,
       HrNode,
       LinkNode,
+      BootstrapLinkNode,
       RowNode,
       ColumnNode,
+      MergeTagNode,
       BootstrapParagraphNode,
       // Swap the core paragraph for our Bootstrap Email `<div>` variant.
       {
         replace: ParagraphNode,
         with: () => new BootstrapParagraphNode(),
         withKlass: BootstrapParagraphNode,
+      },
+      // Swap LinkNode so merge-tag hrefs (`{{key}}`) aren't https://-prefixed.
+      {
+        replace: LinkNode,
+        with: (node: LinkNode) =>
+          new BootstrapLinkNode(node.getURL(), {
+            rel: node.getRel(),
+            target: node.getTarget(),
+            title: node.getTitle(),
+          }),
+        withKlass: BootstrapLinkNode,
       },
     ],
     onError: handleError,
@@ -200,6 +229,7 @@ export const BootstrapEmailEditor = forwardRef<
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <LabelsProvider labels={labels}>
+      <MergeTagProvider mergeTags={mergeTags} labels={mergeTagLabels}>
       <GridSelectionProvider>
       <div className="bew-editor-shell">
         {toolbar && <Toolbar />}
@@ -223,6 +253,7 @@ export const BootstrapEmailEditor = forwardRef<
       {onChange && <ChangeEmitter onChange={onChange} />}
       {children}
       </GridSelectionProvider>
+      </MergeTagProvider>
       </LabelsProvider>
     </LexicalComposer>
   );

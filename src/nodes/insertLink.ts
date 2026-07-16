@@ -10,15 +10,25 @@ import type { LexicalEditor } from "lexical";
 /** URL schemes allowed on links. Anything else (e.g. `javascript:`) is rejected. */
 const SAFE_PROTOCOLS = new Set(["http:", "https:", "mailto:", "sms:", "tel:"]);
 
+/** Matches `{{merge_tag}}` placeholders inside a URL. */
+const MERGE_TAG = /\{\{[^}]+\}\}/g;
+
 /**
  * Normalize a user-entered link URL: trim it, and prefix a bare domain
  * (e.g. `example.com`) with `https://` so it resolves as an absolute link.
- * Explicit schemes, root-relative (`/…`) and anchor (`#…`) links pass through.
+ * Explicit schemes, root-relative (`/…`), anchor (`#…`) and merge-tag (`{{…}}`)
+ * links pass through — a URL that starts with a merge tag resolves to a full
+ * link server-side, so it must not get an `https://` prefix.
  */
 export function normalizeLinkUrl(input: string): string {
   const url = input.trim();
   if (!url) return url;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith("/") || url.startsWith("#")) {
+  if (
+    /^[a-z][a-z0-9+.-]*:/i.test(url) ||
+    url.startsWith("/") ||
+    url.startsWith("#") ||
+    url.startsWith("{{")
+  ) {
     return url;
   }
   return `https://${url}`;
@@ -28,14 +38,22 @@ export function normalizeLinkUrl(input: string): string {
  * True when `url` is safe to embed in an email link. Passed to Lexical's
  * `LinkPlugin` as `validateUrl` and used to gate {@link toggleLink}, so
  * `javascript:` / `data:` and other script-y URLs never enter the document.
+ *
+ * Merge tags are opaque here (their real value is resolved server-side): a URL
+ * that starts with `{{…}}` is trusted, and tags embedded elsewhere are probed
+ * with a placeholder so the surrounding scheme is still validated — e.g.
+ * `javascript:{{x}}` is still rejected.
  */
 export function isSafeLinkUrl(url: string): boolean {
   const value = url.trim();
   if (!value) return false;
   // Root-relative and in-page anchor links carry no scheme and are safe.
   if (value.startsWith("/") || value.startsWith("#")) return true;
+  // A URL that begins with a merge tag resolves to a full URL server-side.
+  if (value.startsWith("{{")) return true;
   try {
-    return SAFE_PROTOCOLS.has(new URL(normalizeLinkUrl(value)).protocol);
+    const probe = value.replace(MERGE_TAG, "0");
+    return SAFE_PROTOCOLS.has(new URL(normalizeLinkUrl(probe)).protocol);
   } catch {
     return false;
   }

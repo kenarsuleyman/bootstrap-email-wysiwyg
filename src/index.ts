@@ -10,6 +10,20 @@ export { Toolbar } from "./plugins/Toolbar";
 export { defaultLabels, LabelsProvider, useLabels } from "./i18n";
 export type { EditorLabels } from "./i18n";
 
+export {
+  MergeTagNode,
+  $createMergeTagNode,
+  $isMergeTagNode,
+} from "./nodes/MergeTagNode";
+export type { SerializedMergeTagNode } from "./nodes/MergeTagNode";
+export { insertMergeTag } from "./nodes/insertMergeTag";
+export { MergeTagProvider, useMergeTags } from "./plugins/MergeTagContext";
+export type { MergeTag } from "./plugins/MergeTagContext";
+export {
+  MergeTagLinkPicker,
+  insertAtInputCaret,
+} from "./plugins/MergeTagLinkPicker";
+
 export { toBootstrapEmailHtml, cleanBootstrapHtml } from "./export";
 export type { BootstrapEmailHtmlOptions } from "./export";
 
@@ -46,6 +60,7 @@ export {
   isSafeLinkUrl,
   normalizeLinkUrl,
 } from "./nodes/insertLink";
+export { BootstrapLinkNode } from "./nodes/BootstrapLinkNode";
 export { LinkPopover } from "./plugins/LinkPopover";
 export type { LinkState } from "./plugins/LinkPopover";
 export {

@@ -43,6 +43,8 @@ export interface EditorLabels {
   insertGrid: string;
   /** Tooltip of the insert-grid button. */
   insertGridTitle: string;
+  /** aria-label / tooltip of the merge-tag dropdown (shown only when tags exist). */
+  mergeTag: string;
   /** Message in the `window.prompt` shown when inserting an image. */
   imagePrompt: string;
   /** Text of a freshly inserted button. */
@@ -116,6 +118,7 @@ export const defaultLabels: EditorLabels = {
   insertSeparator: "Insert separator",
   insertGrid: "Insert grid",
   insertGridTitle: "Insert grid (row of columns)",
+  mergeTag: "Insert merge tag",
   imagePrompt: "Image URL",
   buttonDefaultLabel: "Button",
 

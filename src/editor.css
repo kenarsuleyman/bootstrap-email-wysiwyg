@@ -50,6 +50,18 @@
   text-decoration: underline line-through;
 }
 
+/* Merge tags render as an atomic `{{key}}` chip so it reads as a single,
+   indivisible token. Editor-only: the `bew-` class is stripped on export, and
+   any user-applied color/size still shows through (inherited, not overridden). */
+.bew-merge-tag {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(13, 110, 253, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.25);
+  /* Nudge so the chip's padding doesn't disturb line rhythm. */
+  margin: 0 1px;
+}
+
 /* Inline links. Styled by descendant selector (not a Lexical theme class) so
    no editor-only class leaks into the exported email HTML. `.btn` anchors are
    excluded — those are buttons, styled below. */

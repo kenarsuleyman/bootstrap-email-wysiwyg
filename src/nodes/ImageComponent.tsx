@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getNodeByKey } from "lexical";
 import type { NodeKey } from "lexical";
@@ -8,6 +8,10 @@ import { StepSlider } from "../plugins/StepSlider";
 import { isSafeLinkUrl, normalizeLinkUrl } from "./insertLink";
 import { $isImageNode, type ImageNode } from "./ImageNode";
 import { useLabels } from "../i18n";
+import {
+  MergeTagLinkPicker,
+  insertAtInputCaret,
+} from "../plugins/MergeTagLinkPicker";
 import "./image.css";
 
 interface ImageComponentProps {
@@ -38,6 +42,7 @@ export function ImageComponent({
   ];
   const [open, setOpen] = useState(false);
   const [linkDraft, setLinkDraft] = useState(link);
+  const linkInputRef = useRef<HTMLInputElement>(null);
 
   // Keep the draft in sync when the node's link changes (undo/redo, etc.).
   useEffect(() => setLinkDraft(link), [link]);
@@ -49,9 +54,10 @@ export function ImageComponent({
     });
   };
 
-  // Commit the link on blur / Enter: empty clears it, unsafe URLs are ignored.
-  const applyLink = () => {
-    const trimmed = linkDraft.trim();
+  // Commit the link on blur / Enter (or after picking a merge tag): empty
+  // clears it, unsafe URLs are ignored.
+  const applyLink = (raw: string = linkDraft) => {
+    const trimmed = raw.trim();
     if (trimmed === "") {
       update((node) => node.setLink(""));
     } else if (isSafeLinkUrl(trimmed)) {
@@ -175,19 +181,34 @@ export function ImageComponent({
 
           <label className="bew-image-link">
             <span>{labels.imageLinkOptional}</span>
-            <input
-              type="url"
-              value={linkDraft}
-              placeholder={labels.urlPlaceholder}
-              onChange={(event) => setLinkDraft(event.target.value)}
-              onBlur={applyLink}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  applyLink();
+            <div className="bew-link-input-row">
+              <input
+                ref={linkInputRef}
+                type="url"
+                value={linkDraft}
+                placeholder={labels.urlPlaceholder}
+                onChange={(event) => setLinkDraft(event.target.value)}
+                onBlur={() => applyLink()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    applyLink();
+                  }
+                }}
+              />
+              <MergeTagLinkPicker
+                onPick={(key) =>
+                  applyLink(
+                    insertAtInputCaret(
+                      linkInputRef,
+                      linkDraft,
+                      setLinkDraft,
+                      `{{${key}}}`,
+                    ),
+                  )
                 }
-              }}
-            />
+              />
+            </div>
           </label>
         </div>
       )}

@@ -29,7 +29,9 @@ import { $isButtonNode } from "../nodes/ButtonNode";
 import { insertImage } from "../nodes/insertImage";
 import { insertHr } from "../nodes/insertHr";
 import { insertGrid, setColumnColor } from "../nodes/insertGrid";
+import { insertMergeTag } from "../nodes/insertMergeTag";
 import { useGridSelection } from "./GridSelectionContext";
+import { useMergeTags } from "./MergeTagContext";
 import { getLastButtonStyle } from "../nodes/buttonMemory";
 import { normalizeAlign, type Align } from "../nodes/alignment";
 import { applyColor, type ColorKind } from "../nodes/applyColor";
@@ -318,9 +320,25 @@ function GridInsertIcon() {
   );
 }
 
+function MergeTagIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M6 2.5c-1.5 0-2 .8-2 2v1.4c0 .9-.4 1.5-1.3 1.6v.9c.9.1 1.3.7 1.3 1.6V11.5c0 1.2.5 2 2 2M10 2.5c1.5 0 2 .8 2 2v1.4c0 .9.4 1.5 1.3 1.6v.9c-.9.1-1.3.7-1.3 1.6V11.5c0 1.2-.5 2-2 2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function Toolbar() {
   const [editor] = useLexicalComposerContext();
   const labels = useLabels();
+  const mergeTags = useMergeTags();
   const { selectedColumnKey } = useGridSelection();
   const alignLabels: Record<Align, string> = {
     left: labels.alignLeft,
@@ -671,6 +689,30 @@ export function Toolbar() {
       >
         <GridInsertIcon />
       </button>
+
+      {mergeTags.length > 0 && (
+        <>
+          <span className="bew-tb-divider" />
+          <Dropdown
+            ariaLabel={labels.mergeTag}
+            triggerClassName="bew-tb-btn"
+            label={<MergeTagIcon />}
+          >
+            {mergeTags.map((tag) => (
+              <button
+                key={tag.key}
+                type="button"
+                className="bew-tb-menu-item"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => insertMergeTag(editor, tag.key)}
+              >
+                <span className="bew-tb-menu-item-label">{tag.label}</span>
+                <code className="bew-tb-menu-item-key">{`{{${tag.key}}}`}</code>
+              </button>
+            ))}
+          </Dropdown>
+        </>
+      )}
     </div>
   );
 }

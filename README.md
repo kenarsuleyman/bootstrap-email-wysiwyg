@@ -45,6 +45,7 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
 - [Component API](#component-api)
 - [Imperative handle (ref)](#imperative-handle-ref)
 - [Toolbar features](#toolbar-features)
+- [Merge tags](#merge-tags)
 - [Localization](#localization)
 - [Headless / custom toolbar](#headless--custom-toolbar)
 - [Programmatic commands](#programmatic-commands)
@@ -211,6 +212,8 @@ import { BootstrapEmailEditor } from "bootstrap-email-wysiwyg";
 | ---------------- | --------------------------------- | -------------------- | ----------------------------------------------------------------------- |
 | `placeholder`    | `string`                          | `"Start writing…"`   | Placeholder shown when empty. Wins over `labels.placeholder`.           |
 | `labels`         | `Partial<EditorLabels>`           | `undefined`          | Override chrome strings for localization (see [Localization](#localization)). |
+| `mergeTags`      | `MergeTag[]`                      | `undefined`          | Insertable `{{key}}` tokens; shows a toolbar dropdown (see [Merge tags](#merge-tags)). |
+| `mergeTagLabels` | `Record<string, string>`          | `undefined`          | Per-key override of merge-tag display labels (localization).            |
 | `toolbar`        | `boolean`                         | `true`               | Render the built-in formatting toolbar.                                 |
 | `initialContent` | `string`                          | `undefined`          | Serialized editor state to seed the editor (see [Seeding](#seeding-content)). |
 | `onChange`       | `(change: EditorChange) => void`  | `undefined`          | Called on every edit with `{ html, json }`.                             |
@@ -246,6 +249,7 @@ Attach a `ref` of type `BootstrapEmailEditorHandle`:
 | Alignment      | Left, center, right, justify                                             | `text-*` (or `ax-*` for buttons)         |
 | Colors         | Text, background, border (buttons) — palette + custom                    | `text-*`, `bg-*`, `border-*`             |
 | Insert         | Link, button, image (from URL), separator, grid                         | `<a href>`, `btn`, `img-fluid`, `<hr>`, `row`/`col-N` |
+| Merge tags     | Insert a `{{key}}` token (dropdown; only when `mergeTags` is set)        | `{{key}}`                                 |
 
 Colors apply to the selected text (as a span), the current block, or a focused
 button, depending on the selection. The **link** button opens a popover:
@@ -273,6 +277,99 @@ it's highlighted and its pill stays pinned. While a column is selected, the
 toolbar's text / background / border color pickers target the **column** (the
 `col-N` div gets `text-*` / `bg-*` / `border-*` classes) instead of the content
 inside it. Click inside the column body to deselect.
+
+## Merge tags
+
+Merge tags (a.k.a. variables / personalization fields) let users drop
+`{{key}}` placeholders into the content for a backend to fill in later — e.g.
+`Hi {{first_name}},`. Define them with the `mergeTags` prop; each has a `key`
+(inserted as `{{key}}`) and a `label` (shown in the toolbar). The toolbar's
+merge-tag dropdown appears **only when at least one tag is defined**.
+
+```tsx
+<BootstrapEmailEditor
+  mergeTags={[
+    { key: "first_name", label: "First name" },
+    { key: "email", label: "Email" },
+  ]}
+/>
+```
+
+Each inserted tag is an **atomic token**: it's selected and deleted as a single
+unit and can never be split down the middle, so `{{key}}` always reaches your
+backend intact. Because it's still text under the hood, a tag takes all the
+usual formatting — bold, color, font size — applied to the **whole** tag:
+
+```html
+<!-- {{first_name}} colored + bolded, exported: -->
+<strong><span class="text-primary">{{first_name}}</span></strong>
+```
+
+**Tags inside buttons.** A tag can also be (part of) a button's label — insert
+it with the cursor in the button, or select label text to replace it. The tag
+stays inside the button and exports as
+`<a class="btn …">{{first_name}}</a>`.
+
+### Link merge tags
+
+Flag a tag with `isLink: true` to mark it as resolving to a URL. Link tags get
+a picker in the **link popover** (for text and button hrefs) and the **image
+link** field, so `{{key}}` can be used as an href — inserted at the cursor, so
+it works standalone (`{{cta_url}}`) or embedded (`https://x.co/{{tracking_id}}`).
+Link tags also still appear in the regular content dropdown.
+
+```tsx
+<BootstrapEmailEditor
+  mergeTags={[
+    { key: "first_name", label: "First name" },
+    { key: "cta_url", label: "CTA link", isLink: true },
+  ]}
+/>
+```
+
+A merge-tag href is kept **verbatim** — never `https://`-prefixed or otherwise
+mangled — so the backend gets a clean `{{cta_url}}`:
+
+```html
+<a href="{{cta_url}}" class="btn btn-primary">Shop now</a>
+<a href="{{cta_url}}">Read more</a>            <!-- inline text link -->
+<a href="{{cta_url}}"><img src="…" class="img-fluid"></a>  <!-- image link -->
+```
+
+URL safety still applies to the surrounding text: `javascript:{{x}}` is rejected,
+while `mailto:{{email}}` and `https://x.co/{{id}}` pass.
+
+**Localizing labels.** Like [chrome strings](#localization), tag labels are
+overridable without rebuilding the list — pass `mergeTagLabels`, a per-key map
+that wins over each definition's `label` (missing keys keep the default):
+
+```tsx
+<BootstrapEmailEditor
+  mergeTags={[{ key: "first_name", label: "First name" }]}
+  mergeTagLabels={{ first_name: "Ad" }} // shown as "Ad" in the dropdown
+/>
+```
+
+**Programmatic insert.** `insertMergeTag(editor, key)` inserts a tag at the
+selection; standalone components can read the resolved list via `useMergeTags()`
+(wrap them in `MergeTagProvider` when used outside `BootstrapEmailEditor`, same
+as [`LabelsProvider`](#localization)).
+
+```ts
+import { insertMergeTag, type MergeTag } from "bootstrap-email-wysiwyg";
+
+insertMergeTag(editor, "first_name"); // inserts {{first_name}}
+```
+
+| Export             | Type                                     | Use                                             |
+| ------------------ | ---------------------------------------- | ----------------------------------------------- |
+| `MergeTag`           | `interface`                              | A tag definition: `{ key, label, isLink? }`.    |
+| `insertMergeTag`     | `(editor, key: string) => void`          | Insert a `{{key}}` token at the selection.      |
+| `useMergeTags()`     | `() => MergeTag[]`                        | Read the resolved tags in a custom control.     |
+| `MergeTagProvider`   | `({ mergeTags?, labels?, children }) => JSX.Element` | Supply tags around standalone components. |
+| `MergeTagNode`       | `class` (+ `$createMergeTagNode`, `$isMergeTagNode`) | The token node, for advanced use.   |
+| `MergeTagLinkPicker` | `({ onPick }) => JSX.Element`            | The link-tag picker; renders link tags only.    |
+| `BootstrapLinkNode`  | `class`                                  | LinkNode variant that preserves `{{key}}` hrefs. |
 
 ## Localization
 
@@ -367,6 +464,7 @@ import {
   insertImage,
   insertHr,
   insertGrid,
+  insertMergeTag,
   addGridColumn,
   removeGridColumn,
   adjustGridColumn,
@@ -396,6 +494,8 @@ insertImage(editor, {
 });
 
 insertHr(editor, { top: "5", bottom: "5" }); // margin keys (mt-5 / mb-5 = 20px)
+
+insertMergeTag(editor, "first_name"); // inserts the atomic token {{first_name}}
 
 insertGrid(editor, 2);          // a row of N evenly-sized columns (default 2)
 addGridColumn(editor);          // add a column to the current row, re-balance
@@ -465,6 +565,8 @@ Behavior is covered by headless verification scripts:
 npx tsx scripts/verify-export.mjs   # export API + JSON round-trip
 npx tsx scripts/verify-color.mjs    # color apply + class output
 npx tsx scripts/verify-grid.mjs     # grid width math + row/column export
+npx tsx scripts/verify-mergetag.mjs # merge-tag atomicity + clean {{key}} export
+npx tsx scripts/verify-mergetag-link.mjs # merge-tag hrefs on buttons/text/images
 # …and verify-button / align / fontsize / image / hr / link
 ```
 
