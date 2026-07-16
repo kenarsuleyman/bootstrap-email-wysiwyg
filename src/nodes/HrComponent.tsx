@@ -10,6 +10,7 @@ import {
 } from "../marginScale";
 import { StepSlider } from "../plugins/StepSlider";
 import { $isHrNode, type HrNode } from "./HrNode";
+import { useLabels } from "../i18n";
 import "./hr.css";
 
 interface HrComponentProps {
@@ -20,6 +21,7 @@ interface HrComponentProps {
 
 export function HrComponent({ nodeKey, top, bottom }: HrComponentProps) {
   const [editor] = useLexicalComposerContext();
+  const labels = useLabels();
   const [open, setOpen] = useState(false);
 
   const update = (mutate: (node: HrNode) => void) => {
@@ -43,7 +45,7 @@ export function HrComponent({ nodeKey, top, bottom }: HrComponentProps) {
       <button
         type="button"
         className="bew-hr-gear"
-        aria-label="Separator settings"
+        aria-label={labels.separatorSettings}
         onClick={() => setOpen((prev) => !prev)}
       >
         ⚙
@@ -52,14 +54,14 @@ export function HrComponent({ nodeKey, top, bottom }: HrComponentProps) {
       {open && (
         <div className="bew-hr-panel">
           <StepSlider
-            label="Top spacing"
+            label={labels.topSpacing}
             steps={MARGIN_STEPS}
             value={top}
             fallbackKey={DEFAULT_HR_MARGIN}
             onChange={(key) => update((node) => node.setTop(key))}
           />
           <StepSlider
-            label="Bottom spacing"
+            label={labels.bottomSpacing}
             steps={MARGIN_STEPS}
             value={bottom}
             fallbackKey={DEFAULT_HR_MARGIN}

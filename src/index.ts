@@ -7,6 +7,9 @@ export type {
 export { bootstrapEmailTheme } from "./theme";
 export { Toolbar } from "./plugins/Toolbar";
 
+export { defaultLabels, LabelsProvider, useLabels } from "./i18n";
+export type { EditorLabels } from "./i18n";
+
 export { toBootstrapEmailHtml, cleanBootstrapHtml } from "./export";
 export type { BootstrapEmailHtmlOptions } from "./export";
 

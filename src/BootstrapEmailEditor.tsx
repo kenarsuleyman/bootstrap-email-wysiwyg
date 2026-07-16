@@ -35,6 +35,7 @@ import {
   toBootstrapEmailHtml,
   type BootstrapEmailHtmlOptions,
 } from "./export";
+import { LabelsProvider, defaultLabels, type EditorLabels } from "./i18n";
 import "./editor.css";
 
 /** Payload passed to `onChange` on every edit. */
@@ -59,8 +60,16 @@ export interface BootstrapEmailEditorHandle {
 }
 
 export interface BootstrapEmailEditorProps {
-  /** Placeholder text shown when the editor is empty. */
+  /**
+   * Placeholder text shown when the editor is empty. Takes precedence over
+   * `labels.placeholder`.
+   */
   placeholder?: string;
+  /**
+   * Override any editor chrome strings (toolbar tooltips, panel labels, …) for
+   * localization. Missing keys fall back to the English defaults.
+   */
+  labels?: Partial<EditorLabels>;
   /** Show the built-in formatting toolbar. Defaults to true. */
   toolbar?: boolean;
   /** Seed the editor from a serialized state (as produced by `getJson`). */
@@ -123,7 +132,8 @@ export const BootstrapEmailEditor = forwardRef<
   BootstrapEmailEditorProps
 >(function BootstrapEmailEditor(
   {
-    placeholder = "Start writing your email…",
+    placeholder,
+    labels,
     toolbar = true,
     initialContent,
     onChange,
@@ -133,6 +143,10 @@ export const BootstrapEmailEditor = forwardRef<
   ref,
 ) {
   const editorRef = useRef<LexicalEditor | null>(null);
+  // The `placeholder` prop wins; otherwise fall back to the (possibly
+  // localized) label, then the English default.
+  const resolvedPlaceholder =
+    placeholder ?? labels?.placeholder ?? defaultLabels.placeholder;
 
   useImperativeHandle(
     ref,
@@ -185,6 +199,7 @@ export const BootstrapEmailEditor = forwardRef<
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
+      <LabelsProvider labels={labels}>
       <GridSelectionProvider>
       <div className="bew-editor-shell">
         {toolbar && <Toolbar />}
@@ -193,7 +208,9 @@ export const BootstrapEmailEditor = forwardRef<
             contentEditable={
               <ContentEditable className="bew-content-editable" />
             }
-            placeholder={<div className="bew-placeholder">{placeholder}</div>}
+            placeholder={
+              <div className="bew-placeholder">{resolvedPlaceholder}</div>
+            }
             ErrorBoundary={LexicalErrorBoundary}
           />
           <GridControls />
@@ -206,6 +223,7 @@ export const BootstrapEmailEditor = forwardRef<
       {onChange && <ChangeEmitter onChange={onChange} />}
       {children}
       </GridSelectionProvider>
+      </LabelsProvider>
     </LexicalComposer>
   );
 });

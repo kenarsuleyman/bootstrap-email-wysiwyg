@@ -6,6 +6,7 @@ import {
   removeCustomColor,
   useCustomColors,
 } from "./customColors";
+import { useLabels } from "../i18n";
 import "./color-picker.css";
 
 interface ColorPickerProps {
@@ -44,6 +45,7 @@ function Swatch({ hex, token, title, onSelect, onRemove }: SwatchProps) {
 }
 
 export function ColorPicker({ onSelect }: ColorPickerProps) {
+  const labels = useLabels();
   const customColors = useCustomColors();
   const colorInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +57,7 @@ export function ColorPicker({ onSelect }: ColorPickerProps) {
         onClick={() => onSelect(null)}
       >
         <span className="bew-color-clear-swatch" />
-        No color
+        {labels.noColor}
       </button>
 
       <div className="bew-color-row">
@@ -88,14 +90,14 @@ export function ColorPicker({ onSelect }: ColorPickerProps) {
       </div>
 
       <div className="bew-color-custom">
-        <span className="bew-color-custom-label">Custom</span>
+        <span className="bew-color-custom-label">{labels.customColor}</span>
         <div className="bew-color-row">
           {customColors.map((hex) => (
             <Swatch
               key={hex}
               hex={hex}
               token={hex}
-              title={`${hex} (right-click to remove)`}
+              title={`${hex} (${labels.removeColorHint})`}
               onSelect={onSelect}
               onRemove={() => removeCustomColor(hex)}
             />
@@ -103,8 +105,8 @@ export function ColorPicker({ onSelect }: ColorPickerProps) {
           <button
             type="button"
             className="bew-swatch bew-swatch--add"
-            title="Add a custom color"
-            aria-label="Add a custom color"
+            title={labels.addCustomColor}
+            aria-label={labels.addCustomColor}
             onClick={() => colorInputRef.current?.click()}
           >
             +

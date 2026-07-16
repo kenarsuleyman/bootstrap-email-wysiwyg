@@ -7,6 +7,7 @@ import { SIZE_STEPS, imagePreviewStyle, type ImageMode } from "../imageSize";
 import { StepSlider } from "../plugins/StepSlider";
 import { isSafeLinkUrl, normalizeLinkUrl } from "./insertLink";
 import { $isImageNode, type ImageNode } from "./ImageNode";
+import { useLabels } from "../i18n";
 import "./image.css";
 
 interface ImageComponentProps {
@@ -19,12 +20,6 @@ interface ImageComponentProps {
   link: string;
 }
 
-const MODES: { mode: ImageMode; label: string }[] = [
-  { mode: "fluid", label: "Full width" },
-  { mode: "fixed", label: "Fixed size" },
-  { mode: "max", label: "Max width" },
-];
-
 export function ImageComponent({
   nodeKey,
   src,
@@ -35,6 +30,12 @@ export function ImageComponent({
   link,
 }: ImageComponentProps) {
   const [editor] = useLexicalComposerContext();
+  const labels = useLabels();
+  const modes: { mode: ImageMode; label: string }[] = [
+    { mode: "fluid", label: labels.imageFullWidth },
+    { mode: "fixed", label: labels.imageFixedSize },
+    { mode: "max", label: labels.imageMaxWidth },
+  ];
   const [open, setOpen] = useState(false);
   const [linkDraft, setLinkDraft] = useState(link);
 
@@ -92,7 +93,7 @@ export function ImageComponent({
         <button
           type="button"
           className="bew-image-gear"
-          aria-label="Image settings"
+          aria-label={labels.imageSettings}
           onClick={() => setOpen((prev) => !prev)}
         >
           ⚙
@@ -102,7 +103,7 @@ export function ImageComponent({
       {open && (
         <div className="bew-image-panel">
           <div className="bew-image-modes">
-            {MODES.map((option) => (
+            {modes.map((option) => (
               <button
                 key={option.mode}
                 type="button"
@@ -127,7 +128,7 @@ export function ImageComponent({
                     })
                   }
                 >
-                  Width
+                  {labels.width}
                 </button>
                 <button
                   type="button"
@@ -139,11 +140,11 @@ export function ImageComponent({
                     })
                   }
                 >
-                  Height
+                  {labels.height}
                 </button>
               </div>
               <StepSlider
-                label={axis === "width" ? "Width" : "Height"}
+                label={axis === "width" ? labels.width : labels.height}
                 steps={SIZE_STEPS}
                 value={axis === "width" ? width : height}
                 fallbackKey={axis === "width" ? "64" : "48"}
@@ -164,7 +165,7 @@ export function ImageComponent({
 
           {mode === "max" && (
             <StepSlider
-              label="Max width"
+              label={labels.imageMaxWidth}
               steps={SIZE_STEPS}
               value={width}
               fallbackKey="96"
@@ -173,11 +174,11 @@ export function ImageComponent({
           )}
 
           <label className="bew-image-link">
-            <span>Link (optional)</span>
+            <span>{labels.imageLinkOptional}</span>
             <input
               type="url"
               value={linkDraft}
-              placeholder="https://example.com"
+              placeholder={labels.urlPlaceholder}
               onChange={(event) => setLinkDraft(event.target.value)}
               onBlur={applyLink}
               onKeyDown={(event) => {

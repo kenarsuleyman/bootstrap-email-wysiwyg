@@ -3,6 +3,7 @@ import type { LexicalEditor } from "lexical";
 
 import { toggleLink, insertLinkWithText } from "../nodes/insertLink";
 import { setButtonHref } from "../nodes/insertButton";
+import { useLabels } from "../i18n";
 import "./link-popover.css";
 
 /** Selection context the toolbar computes to drive the link popover. */
@@ -42,6 +43,7 @@ interface LinkPopoverProps {
  * a link.
  */
 export function LinkPopover({ editor, state }: LinkPopoverProps) {
+  const labels = useLabels();
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
@@ -90,10 +92,10 @@ export function LinkPopover({ editor, state }: LinkPopoverProps) {
   };
 
   const label = state.inButton
-    ? "Set button link"
+    ? labels.setButtonLink
     : state.active
-      ? "Edit link"
-      : "Insert link";
+      ? labels.editLink
+      : labels.insertLink;
 
   return (
     <div className="bew-tb-dropdown" ref={ref}>
@@ -122,23 +124,23 @@ export function LinkPopover({ editor, state }: LinkPopoverProps) {
           }}
         >
           <label className="bew-link-field">
-            <span>URL</span>
+            <span>{labels.url}</span>
             <input
               ref={urlInputRef}
               type="url"
               value={url}
-              placeholder="https://example.com"
+              placeholder={labels.urlPlaceholder}
               onChange={(event) => setUrl(event.target.value)}
             />
           </label>
 
           {state.needsDisplayText && (
             <label className="bew-link-field">
-              <span>Display text (optional)</span>
+              <span>{labels.displayTextOptional}</span>
               <input
                 type="text"
                 value={text}
-                placeholder="Link text"
+                placeholder={labels.linkTextPlaceholder}
                 onChange={(event) => setText(event.target.value)}
               />
             </label>
@@ -151,7 +153,7 @@ export function LinkPopover({ editor, state }: LinkPopoverProps) {
                 className="bew-link-btn bew-link-btn--remove"
                 onClick={remove}
               >
-                Remove
+                {labels.remove}
               </button>
             )}
             <button
@@ -159,7 +161,7 @@ export function LinkPopover({ editor, state }: LinkPopoverProps) {
               className="bew-link-btn bew-link-btn--apply"
               onClick={apply}
             >
-              Apply
+              {labels.apply}
             </button>
           </div>
         </div>

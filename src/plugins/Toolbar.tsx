@@ -36,6 +36,7 @@ import { applyColor, type ColorKind } from "../nodes/applyColor";
 import { adjustFontSize } from "../nodes/applyFontSize";
 import { ColorPicker } from "./ColorPicker";
 import { LinkPopover, type LinkState } from "./LinkPopover";
+import { useLabels } from "../i18n";
 import "./toolbar.css";
 
 function cx(...classes: (string | false | undefined)[]): string {
@@ -319,7 +320,14 @@ function GridInsertIcon() {
 
 export function Toolbar() {
   const [editor] = useLexicalComposerContext();
+  const labels = useLabels();
   const { selectedColumnKey } = useGridSelection();
+  const alignLabels: Record<Align, string> = {
+    left: labels.alignLeft,
+    center: labels.alignCenter,
+    right: labels.alignRight,
+    justify: labels.alignJustify,
+  };
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
@@ -464,14 +472,17 @@ export function Toolbar() {
   );
 
   const insertStyledButton = useCallback(() => {
-    insertButton(editor, { ...getLastButtonStyle(), label: "Button" });
-  }, [editor]);
+    insertButton(editor, {
+      ...getLastButtonStyle(),
+      label: labels.buttonDefaultLabel,
+    });
+  }, [editor, labels.buttonDefaultLabel]);
 
   const insertImageFromUrl = useCallback(() => {
-    const url = window.prompt("Image URL");
+    const url = window.prompt(labels.imagePrompt);
     const src = url?.trim();
     if (src) insertImage(editor, { src });
-  }, [editor]);
+  }, [editor, labels.imagePrompt]);
 
   const insertSeparator = useCallback(() => {
     insertHr(editor);
@@ -482,12 +493,12 @@ export function Toolbar() {
   }, [editor]);
 
   return (
-    <div className="bew-toolbar" role="toolbar" aria-label="Formatting">
+    <div className="bew-toolbar" role="toolbar" aria-label={labels.toolbar}>
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Undo"
-        title="Undo"
+        aria-label={labels.undo}
+        title={labels.undo}
         disabled={!canUndo}
         onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}
       >
@@ -496,8 +507,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Redo"
-        title="Redo"
+        aria-label={labels.redo}
+        title={labels.redo}
         disabled={!canRedo}
         onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}
       >
@@ -509,8 +520,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn bew-tb-font"
-        aria-label="Decrease font size"
-        title="Decrease font size"
+        aria-label={labels.decreaseFontSize}
+        title={labels.decreaseFontSize}
         onClick={() => changeFontSize("decrease")}
       >
         <span className="bew-tb-font-a bew-tb-font-a--sm">A</span>
@@ -519,8 +530,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn bew-tb-font"
-        aria-label="Increase font size"
-        title="Increase font size"
+        aria-label={labels.increaseFontSize}
+        title={labels.increaseFontSize}
         onClick={() => changeFontSize("increase")}
       >
         <span className="bew-tb-font-a bew-tb-font-a--lg">A</span>
@@ -532,8 +543,8 @@ export function Toolbar() {
       <button
         type="button"
         className={cx("bew-tb-btn", "bew-tb-btn--bold", formats.bold && "is-active")}
-        aria-label="Bold"
-        title="Bold"
+        aria-label={labels.bold}
+        title={labels.bold}
         aria-pressed={formats.bold}
         onClick={() => toggleFormat("bold")}
       >
@@ -542,8 +553,8 @@ export function Toolbar() {
       <button
         type="button"
         className={cx("bew-tb-btn", "bew-tb-btn--italic", formats.italic && "is-active")}
-        aria-label="Italic"
-        title="Italic"
+        aria-label={labels.italic}
+        title={labels.italic}
         aria-pressed={formats.italic}
         onClick={() => toggleFormat("italic")}
       >
@@ -556,8 +567,8 @@ export function Toolbar() {
           "bew-tb-btn--underline",
           formats.underline && "is-active",
         )}
-        aria-label="Underline"
-        title="Underline"
+        aria-label={labels.underline}
+        title={labels.underline}
         aria-pressed={formats.underline}
         onClick={() => toggleFormat("underline")}
       >
@@ -570,8 +581,8 @@ export function Toolbar() {
           "bew-tb-btn--strike",
           formats.strikethrough && "is-active",
         )}
-        aria-label="Strikethrough"
-        title="Strikethrough"
+        aria-label={labels.strikethrough}
+        title={labels.strikethrough}
         aria-pressed={formats.strikethrough}
         onClick={() => toggleFormat("strikethrough")}
       >
@@ -585,8 +596,8 @@ export function Toolbar() {
           key={option}
           type="button"
           className={cx("bew-tb-btn", align === option && "is-active")}
-          aria-label={`Align ${option}`}
-          title={`Align ${option}`}
+          aria-label={alignLabels[option]}
+          title={alignLabels[option]}
           aria-pressed={align === option}
           onClick={() => setAlignment(option)}
         >
@@ -597,7 +608,7 @@ export function Toolbar() {
       <span className="bew-tb-divider" />
 
       <Dropdown
-        ariaLabel="Text color"
+        ariaLabel={labels.textColor}
         triggerClassName="bew-tb-btn"
         menuClassName="bew-tb-menu--color"
         label={<TextColorIcon />}
@@ -605,7 +616,7 @@ export function Toolbar() {
         <ColorPicker onSelect={(token) => setColor("text", token)} />
       </Dropdown>
       <Dropdown
-        ariaLabel="Background color"
+        ariaLabel={labels.backgroundColor}
         triggerClassName="bew-tb-btn"
         menuClassName="bew-tb-menu--color"
         label={<BgColorIcon />}
@@ -613,7 +624,7 @@ export function Toolbar() {
         <ColorPicker onSelect={(token) => setColor("bg", token)} />
       </Dropdown>
       <Dropdown
-        ariaLabel="Border color"
+        ariaLabel={labels.borderColor}
         triggerClassName="bew-tb-btn"
         menuClassName="bew-tb-menu--color"
         label={<BorderColorIcon />}
@@ -627,8 +638,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Insert button"
-        title="Insert button"
+        aria-label={labels.insertButton}
+        title={labels.insertButton}
         onClick={insertStyledButton}
       >
         <ButtonInsertIcon />
@@ -636,8 +647,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Insert image"
-        title="Insert image from URL"
+        aria-label={labels.insertImage}
+        title={labels.insertImageTitle}
         onClick={insertImageFromUrl}
       >
         <ImageInsertIcon />
@@ -645,8 +656,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Insert separator"
-        title="Insert separator"
+        aria-label={labels.insertSeparator}
+        title={labels.insertSeparator}
         onClick={insertSeparator}
       >
         <HrInsertIcon />
@@ -654,8 +665,8 @@ export function Toolbar() {
       <button
         type="button"
         className="bew-tb-btn"
-        aria-label="Insert grid"
-        title="Insert grid (row of columns)"
+        aria-label={labels.insertGrid}
+        title={labels.insertGridTitle}
         onClick={insertGridBlock}
       >
         <GridInsertIcon />

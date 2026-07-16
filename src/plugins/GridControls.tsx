@@ -7,6 +7,7 @@ import { $isRowNode } from "../nodes/RowNode";
 import { $addColumn, $removeColumn, $setColumnSpan } from "../nodes/insertGrid";
 import { GRID_UNITS, MAX_COLUMNS } from "../nodes/gridLayout";
 import { useGridSelection } from "./GridSelectionContext";
+import { useLabels } from "../i18n";
 
 /** Box of a column, relative to the overlay origin (the editor body). */
 interface Box {
@@ -64,6 +65,7 @@ function TrashIcon() {
  */
 export function GridControls(): JSX.Element {
   const [editor] = useLexicalComposerContext();
+  const labels = useLabels();
   const { selectedColumnKey, selectColumn } = useGridSelection();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -367,22 +369,22 @@ export function GridControls(): JSX.Element {
           <button
             type="button"
             className="bew-grid-btn"
-            aria-label="Narrow column"
-            title="Narrow column"
+            aria-label={labels.narrowColumn}
+            title={labels.narrowColumn}
             disabled={!canResize || overlay.span <= 1}
             onMouseDown={keepFocus}
             onClick={() => withColumn((c) => $setColumnSpan(c, c.getSpan() - 1))}
           >
             −
           </button>
-          <span className="bew-grid-span" title="Column width (of 12)">
+          <span className="bew-grid-span" title={labels.columnWidth}>
             {overlay.span}
           </span>
           <button
             type="button"
             className="bew-grid-btn"
-            aria-label="Widen column"
-            title="Widen column"
+            aria-label={labels.widenColumn}
+            title={labels.widenColumn}
             disabled={!canResize || overlay.span >= maxSpan}
             onMouseDown={keepFocus}
             onClick={() => withColumn((c) => $setColumnSpan(c, c.getSpan() + 1))}
@@ -393,8 +395,8 @@ export function GridControls(): JSX.Element {
           <button
             type="button"
             className="bew-grid-btn bew-grid-btn--danger"
-            aria-label="Delete column"
-            title="Delete column"
+            aria-label={labels.deleteColumn}
+            title={labels.deleteColumn}
             onMouseDown={keepFocus}
             onClick={deleteColumn}
           >
@@ -408,8 +410,8 @@ export function GridControls(): JSX.Element {
           type="button"
           className="bew-grid-addcol"
           style={{ top: overlay.rowEdge.y, left: overlay.rowEdge.x }}
-          aria-label="Add column"
-          title="Add column"
+          aria-label={labels.addColumn}
+          title={labels.addColumn}
           disabled={overlay.columnCount >= MAX_COLUMNS}
           onMouseEnter={enterControls}
           onMouseLeave={leaveControls}

@@ -45,6 +45,7 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
 - [Component API](#component-api)
 - [Imperative handle (ref)](#imperative-handle-ref)
 - [Toolbar features](#toolbar-features)
+- [Localization](#localization)
 - [Headless / custom toolbar](#headless--custom-toolbar)
 - [Programmatic commands](#programmatic-commands)
 - [How it works](#how-it-works)
@@ -208,7 +209,8 @@ import { BootstrapEmailEditor } from "bootstrap-email-wysiwyg";
 
 | Prop             | Type                              | Default              | Description                                                             |
 | ---------------- | --------------------------------- | -------------------- | ----------------------------------------------------------------------- |
-| `placeholder`    | `string`                          | `"Start writing…"`   | Placeholder shown when empty.                                           |
+| `placeholder`    | `string`                          | `"Start writing…"`   | Placeholder shown when empty. Wins over `labels.placeholder`.           |
+| `labels`         | `Partial<EditorLabels>`           | `undefined`          | Override chrome strings for localization (see [Localization](#localization)). |
 | `toolbar`        | `boolean`                         | `true`               | Render the built-in formatting toolbar.                                 |
 | `initialContent` | `string`                          | `undefined`          | Serialized editor state to seed the editor (see [Seeding](#seeding-content)). |
 | `onChange`       | `(change: EditorChange) => void`  | `undefined`          | Called on every edit with `{ html, json }`.                             |
@@ -271,6 +273,61 @@ it's highlighted and its pill stays pinned. While a column is selected, the
 toolbar's text / background / border color pickers target the **column** (the
 `col-N` div gets `text-*` / `bg-*` / `border-*` classes) instead of the content
 inside it. Click inside the column body to deselect.
+
+## Localization
+
+Only the **editor chrome** is localizable — toolbar tooltips, panel labels,
+popover fields, prompts. The email **content** is your data and is never
+translated; localizing what your users write is the consuming app's job.
+
+The editor ships no i18n runtime and bundles no locale files. Instead, every
+chrome string is a typed key on the `EditorLabels` interface, with English
+`defaultLabels`. Pass a `Partial<EditorLabels>` to translate — plug in strings
+from whatever i18n system you already use. Missing keys fall back to English, so
+a partial override never breaks the UI.
+
+```tsx
+import { BootstrapEmailEditor, type EditorLabels } from "bootstrap-email-wysiwyg";
+
+const tr: Partial<EditorLabels> = {
+  placeholder: "E-postanızı yazmaya başlayın…",
+  bold: "Kalın",
+  italic: "İtalik",
+  insertLink: "Bağlantı ekle",
+  insertImage: "Görsel ekle",
+};
+
+<BootstrapEmailEditor labels={tr} />;
+```
+
+`EditorLabels` covers the full toolbar (undo/redo, font sizing, inline formats,
+alignment, color pickers, insert buttons), the link popover, the image and
+separator panels, and the grid controls — see the exported interface for the
+complete key list. The `placeholder` prop, if set, wins over
+`labels.placeholder`.
+
+### Related exports
+
+| Export                    | Type                                        | Use                                                        |
+| ------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| `EditorLabels`            | `interface`                                 | The full set of chrome string keys.                        |
+| `defaultLabels`           | `EditorLabels`                              | The English defaults — spread from these to build a locale. |
+| `useLabels()`             | `() => EditorLabels`                        | Read the merged labels inside a custom control.            |
+| `LabelsProvider`          | `({ labels?, children }) => JSX.Element`    | Supply labels around standalone components (see below).    |
+
+When you render the exported components standalone (e.g. a
+[headless toolbar](#headless--custom-toolbar)) rather than through
+`BootstrapEmailEditor`, wrap them in `LabelsProvider` to localize them; without
+a provider they use the English defaults. Custom controls of your own can read
+the active labels with `useLabels()`.
+
+```tsx
+import { LabelsProvider, Toolbar, useLabels } from "bootstrap-email-wysiwyg";
+
+<LabelsProvider labels={tr}>
+  <Toolbar />
+</LabelsProvider>;
+```
 
 ## Headless / custom toolbar
 
