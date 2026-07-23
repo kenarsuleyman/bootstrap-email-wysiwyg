@@ -1,5 +1,7 @@
 import { ParagraphNode } from "lexical";
 import type {
+  DOMConversionMap,
+  DOMConversionOutput,
   DOMExportOutput,
   EditorConfig,
   LexicalNode,
@@ -9,6 +11,8 @@ import type {
 
 import { $isButtonNode } from "./ButtonNode";
 import { axAlignClass, textAlignClass } from "./alignment";
+import { $convertStyledSpanElement } from "./inlineStyle";
+import { parseBootstrapAttributes } from "./parseClasses";
 import { colorAttributes, tokenToHex } from "../colors";
 import { fontSizeClass, fontSizePx, type FontSizeKey } from "../fontSize";
 
@@ -55,6 +59,21 @@ export class BootstrapParagraphNode extends ParagraphNode {
       node.__fontSize,
       node.__key,
     );
+  }
+
+  /**
+   * Import the `<div>` line this node exports (and `<p>`, for hand-written
+   * HTML), restoring alignment / colors / font size from the classes. Rows and
+   * columns claim their own `<div>`s at a higher priority.
+   */
+  static importDOM(): DOMConversionMap | null {
+    return {
+      div: () => ({ conversion: $convertParagraphElement, priority: 0 }),
+      p: () => ({ conversion: $convertParagraphElement, priority: 1 }),
+      // Inline color / font-size spans, which Lexical's own <span> converter
+      // (priority 0) drops. Merge-tag chips outrank this at priority 2.
+      span: () => ({ conversion: $convertStyledSpanElement, priority: 1 }),
+    };
   }
 
   static importJSON(
@@ -171,4 +190,20 @@ export class BootstrapParagraphNode extends ParagraphNode {
     }
     return { element };
   }
+}
+
+function $convertParagraphElement(domNode: HTMLElement): DOMConversionOutput {
+  const { align, textColor, bgColor, fontSize } =
+    parseBootstrapAttributes(domNode);
+  const node = new BootstrapParagraphNode(textColor, bgColor, fontSize);
+  if (align) node.setFormat(align);
+  return {
+    node,
+    // An empty line exports as `<div><br></div>`; keep it empty on the way back
+    // instead of importing the spacer as a line break node.
+    after: (children) =>
+      children.length === 1 && domNode.firstElementChild?.tagName === "BR"
+        ? []
+        : children,
+  };
 }

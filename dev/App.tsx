@@ -39,6 +39,9 @@ export function App() {
     window.setTimeout(() => setCopied(false), 1200);
   };
 
+  // Feed the shown source back in — the export → import round-trip, by hand.
+  const reimport = () => editorRef.current?.setHtml(source);
+
   return (
     <main className="demo-shell">
       <header className="demo-header">
@@ -68,6 +71,9 @@ export function App() {
                 />
                 Full document
               </label>
+              <button type="button" className="demo-copy" onClick={reimport}>
+                Re-import
+              </button>
               <button type="button" className="demo-copy" onClick={copy}>
                 {copied ? "Copied ✓" : "Copy"}
               </button>

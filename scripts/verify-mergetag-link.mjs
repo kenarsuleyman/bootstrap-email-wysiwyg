@@ -1,7 +1,11 @@
 // Headless check of merge tags used as link hrefs: URL validation accepts
 // `{{key}}`, and a merge-tag href survives to export on buttons, inline text
 // links, and image links.
+import { register } from "node:module";
 import { JSDOM } from "jsdom";
+
+// ImageNode is a React component that imports its CSS; stub it out.
+register("./css-loader.mjs", import.meta.url);
 
 const dom = new JSDOM("<!doctype html><html><body></body></html>");
 globalThis.window = dom.window;

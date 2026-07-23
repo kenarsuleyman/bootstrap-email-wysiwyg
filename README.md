@@ -24,7 +24,7 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
   evenly as possible, like `2·2·2·3·3` for five). Select a column (click its
   top/bottom edge) to color the column itself — text / background / border
   land on the `col-N` div.
-- 🔌 **Controlled or headless** — `onChange`, `initialContent`, an imperative
+- 🔌 **Controlled or headless** — `onChange`, `initialContent` / `initialHtml`, an imperative
   `ref`, and framework-free command functions for building your own UI.
 - 📦 **Typed** — ships TypeScript declarations.
 
@@ -41,6 +41,7 @@ Bootstrap Email compiler to produce bullet-proof, cross-client email markup.
 - [Getting content out](#getting-content-out)
 - [Seeding content](#seeding-content)
 - [Exporting HTML](#exporting-html)
+- [Importing HTML](#importing-html)
 - [Compiling to email HTML](#compiling-to-email-html)
 - [Component API](#component-api)
 - [Imperative handle (ref)](#imperative-handle-ref)
@@ -156,7 +157,32 @@ Pass a previously saved state (from `getJson()` or `onChange().json`) as
 ```
 
 > `initialContent` accepts the **serialized editor-state JSON**, not raw HTML.
-> JSON round-trips losslessly; HTML seeding is on the roadmap.
+> To seed from HTML, use `initialHtml` (below).
+
+### Seeding from HTML
+
+If you store Bootstrap Email HTML rather than editor state, pass it as
+`initialHtml` — the HTML this editor produced (`getHtml()` / `onChange().html`,
+fragment or full document) is imported back into editable content:
+
+```tsx
+<BootstrapEmailEditor initialHtml={savedHtml} />
+```
+
+Or replace the content at any time through the `ref`:
+
+```ts
+ref.current?.setHtml(savedHtml);
+```
+
+Merge tags (`{{key}}`) come back as atomic tokens, and buttons, images, linked
+images, separators, grid rows/columns, block and inline colors, font sizes and
+alignment are all restored as editable nodes. Markup the editor can't model is
+imported as plain rich text.
+
+> JSON is still the lossless format — prefer `initialContent` when you control
+> both ends. HTML is the interoperable one: use it when the stored template has
+> to stay readable/portable, or was written outside the editor.
 
 ## Exporting HTML
 
@@ -191,6 +217,20 @@ email document with a `.container`, ready for the compiler.
 > `toBootstrapEmailHtml` and `cleanBootstrapHtml` use the DOM and are
 > **browser-only** (call them client-side, not during SSR).
 
+## Importing HTML
+
+The inverse of the exporter, for use with a Lexical editor instance:
+
+```ts
+import { fromBootstrapEmailHtml } from "bootstrap-email-wysiwyg";
+
+fromBootstrapEmailHtml(editor, html); // replaces the editor's content
+```
+
+`$nodesFromBootstrapEmailHtml(editor, html)` is also exported for building the
+nodes yourself inside an `editor.update()` (e.g. to insert at the selection
+instead of replacing everything). Both are **browser-only**, like the exporter.
+
 ## Compiling to email HTML
 
 This editor produces **Bootstrap Email source** — semantic HTML with Bootstrap
@@ -216,6 +256,7 @@ import { BootstrapEmailEditor } from "bootstrap-email-wysiwyg";
 | `mergeTagLabels` | `Record<string, string>`          | `undefined`          | Per-key override of merge-tag display labels (localization).            |
 | `toolbar`        | `boolean`                         | `true`               | Render the built-in formatting toolbar.                                 |
 | `initialContent` | `string`                          | `undefined`          | Serialized editor state to seed the editor (see [Seeding](#seeding-content)). |
+| `initialHtml`    | `string`                          | `undefined`          | Bootstrap Email HTML to seed the editor, applied once at mount. Ignored when `initialContent` is set. |
 | `onChange`       | `(change: EditorChange) => void`  | `undefined`          | Called on every edit with `{ html, json }`.                             |
 | `onError`        | `(error: Error) => void`          | `undefined`          | Called when Lexical throws (defaults to rethrow).                       |
 | `children`       | `ReactNode`                       | `undefined`          | Extra plugins/components rendered **inside** the editor context.        |
@@ -235,6 +276,7 @@ Attach a `ref` of type `BootstrapEmailEditorHandle`:
 | --------------------- | ----------------------------------------------- | ------------------------------------------------- |
 | `getHtml(options?)`   | `(options?: BootstrapEmailHtmlOptions) => string` | Export Bootstrap Email HTML (fragment or document). |
 | `getJson()`           | `() => string`                                  | Serialized editor state, for `initialContent`.    |
+| `setHtml(html)`       | `(html: string) => void`                        | Replace the content with Bootstrap Email HTML.    |
 | `focus()`             | `() => void`                                    | Focus the editor.                                 |
 | `clear()`             | `() => void`                                    | Remove all content.                               |
 | `getEditor()`         | `() => LexicalEditor \| null`                   | The underlying Lexical editor, for advanced use.  |
@@ -566,6 +608,7 @@ npx tsx scripts/verify-export.mjs   # export API + JSON round-trip
 npx tsx scripts/verify-color.mjs    # color apply + class output
 npx tsx scripts/verify-grid.mjs     # grid width math + row/column export
 npx tsx scripts/verify-mergetag.mjs # merge-tag atomicity + clean {{key}} export
+npx tsx scripts/verify-import.mjs   # HTML import + full export→import round-trip
 npx tsx scripts/verify-mergetag-link.mjs # merge-tag hrefs on buttons/text/images
 # …and verify-button / align / fontsize / image / hr / link
 ```
@@ -576,7 +619,7 @@ Only `dist/` is published; the `dev/` playground stays in the repo.
 
 - Configurable toolbar (feature flags), `readOnly` mode
 - Lists (`<ul>` / `<ol>`)
-- Controlled `value` and HTML seeding / import
+- Controlled `value` prop
 - Framework-agnostic core + Vue/Svelte/vanilla wrappers
 
 ## License

@@ -39,6 +39,7 @@ import {
   toBootstrapEmailHtml,
   type BootstrapEmailHtmlOptions,
 } from "./export";
+import { fromBootstrapEmailHtml } from "./import";
 import { LabelsProvider, defaultLabels, type EditorLabels } from "./i18n";
 import "./editor.css";
 
@@ -56,6 +57,12 @@ export interface BootstrapEmailEditorHandle {
   getHtml: (options?: BootstrapEmailHtmlOptions) => string;
   /** Serialized editor state JSON, suitable for `initialContent`. */
   getJson: () => string;
+  /**
+   * Replace the content with Bootstrap Email HTML (as produced by `getHtml`).
+   * Merge tags, buttons, images, separators and grids are restored as editable
+   * nodes; anything the editor can't model is imported as plain rich text.
+   */
+  setHtml: (html: string) => void;
   focus: () => void;
   /** Remove all content. */
   clear: () => void;
@@ -88,6 +95,12 @@ export interface BootstrapEmailEditorProps {
   toolbar?: boolean;
   /** Seed the editor from a serialized state (as produced by `getJson`). */
   initialContent?: string;
+  /**
+   * Seed the editor from Bootstrap Email HTML (as produced by `getHtml` or
+   * `onChange`). Applied once on mount, and ignored when `initialContent` is
+   * given — serialized state is the lossless format, HTML the interoperable one.
+   */
+  initialHtml?: string;
   /** Called on every edit with the current HTML + serialized state. */
   onChange?: (change: EditorChange) => void;
   /** Called when Lexical throws during an update. */
@@ -133,6 +146,20 @@ function ChangeEmitter({
   return null;
 }
 
+/** Seeds the editor from Bootstrap Email HTML once, on mount. */
+function InitialHtmlPlugin({ html }: { html: string }) {
+  const [editor] = useLexicalComposerContext();
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current) return;
+    seeded.current = true;
+    // `history-merge` keeps the seed out of the undo stack, so the first undo
+    // doesn't wipe the content back to an empty editor.
+    fromBootstrapEmailHtml(editor, html, { tag: "history-merge" });
+  }, [editor, html]);
+  return null;
+}
+
 /**
  * The root WYSIWYG editor component: a rich-text surface with a Quill-style
  * toolbar (inline formatting, font sizing, colors, image / button / separator
@@ -152,6 +179,7 @@ export const BootstrapEmailEditor = forwardRef<
     mergeTagLabels,
     toolbar = true,
     initialContent,
+    initialHtml,
     onChange,
     onError,
     children,
@@ -173,6 +201,9 @@ export const BootstrapEmailEditor = forwardRef<
         editorRef.current
           ? JSON.stringify(editorRef.current.getEditorState().toJSON())
           : "",
+      setHtml: (html) => {
+        if (editorRef.current) fromBootstrapEmailHtml(editorRef.current, html);
+      },
       focus: () => editorRef.current?.focus(),
       clear: () =>
         editorRef.current?.update(() => {
@@ -250,6 +281,7 @@ export const BootstrapEmailEditor = forwardRef<
         <GridPlugin />
       </div>
       <EditorRefPlugin editorRef={editorRef} />
+      {!initialContent && initialHtml && <InitialHtmlPlugin html={initialHtml} />}
       {onChange && <ChangeEmitter onChange={onChange} />}
       {children}
       </GridSelectionProvider>

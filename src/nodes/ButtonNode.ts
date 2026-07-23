@@ -13,6 +13,7 @@ import type {
   Spread,
 } from "lexical";
 
+import { parseBootstrapAttributes } from "./parseClasses";
 import { colorAttributes, tokenToHex } from "../colors";
 import { fontSizePx, type FontSizeKey } from "../fontSize";
 
@@ -176,7 +177,9 @@ export class ButtonNode extends ElementNode {
         if (!domNode.classList.contains("btn")) {
           return null;
         }
-        return { conversion: $convertButtonElement, priority: 1 };
+        // Above LinkNode's own `a` converter (priority 1), which would
+        // otherwise win the tie and import the button as a plain link.
+        return { conversion: $convertButtonElement, priority: 2 };
       },
     };
   }
@@ -343,10 +346,19 @@ function $convertButtonElement(domNode: HTMLElement): DOMConversionOutput {
     }
   }
 
+  // Color overrides ride on `text-*`/`bg-*`/`border-*` classes (palette) or the
+  // inline style (custom hex); font size is always inline on a button anchor.
+  const { textColor, bgColor, borderColor, fontSize } =
+    parseBootstrapAttributes(anchor);
+
   const node = $createButtonNode({
     href: anchor.getAttribute("href") ?? "#",
     variant,
     outline,
+    textColor,
+    bgColor,
+    borderColor,
+    fontSize,
   });
   return { node };
 }

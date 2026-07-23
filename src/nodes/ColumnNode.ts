@@ -10,6 +10,7 @@ import type {
 } from "lexical";
 
 import { colorAttributes, tokenToHex } from "../colors";
+import { parseBootstrapAttributes } from "./parseClasses";
 import { GRID_UNITS } from "./gridLayout";
 
 export type SerializedColumnNode = Spread<
@@ -217,7 +218,12 @@ export class ColumnNode extends ElementNode {
 }
 
 function $convertColumnElement(domNode: HTMLElement): DOMConversionOutput {
-  return { node: $createColumnNode(spanFromClasses(Array.from(domNode.classList))) };
+  const node = $createColumnNode(spanFromClasses(Array.from(domNode.classList)));
+  const { textColor, bgColor, borderColor } = parseBootstrapAttributes(domNode);
+  node.setTextColor(textColor);
+  node.setBgColor(bgColor);
+  node.setBorderColor(borderColor);
+  return { node };
 }
 
 export function $createColumnNode(span: number = GRID_UNITS): ColumnNode {

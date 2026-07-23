@@ -16,6 +16,7 @@ export {
   $isMergeTagNode,
 } from "./nodes/MergeTagNode";
 export type { SerializedMergeTagNode } from "./nodes/MergeTagNode";
+export { MERGE_TAG_PATTERN } from "./nodes/MergeTagNode";
 export { insertMergeTag } from "./nodes/insertMergeTag";
 export { MergeTagProvider, useMergeTags } from "./plugins/MergeTagContext";
 export type { MergeTag } from "./plugins/MergeTagContext";
@@ -26,6 +27,13 @@ export {
 
 export { toBootstrapEmailHtml, cleanBootstrapHtml } from "./export";
 export type { BootstrapEmailHtmlOptions } from "./export";
+
+export {
+  fromBootstrapEmailHtml,
+  $nodesFromBootstrapEmailHtml,
+  $expandMergeTags,
+} from "./import";
+export type { BootstrapEmailImportOptions } from "./import";
 
 export {
   ButtonNode,
@@ -138,6 +146,7 @@ export {
   tokenToHex,
   tokenToClass,
   hexToToken,
+  isColorToken,
   colorAttributes,
 } from "./colors";
 export type { Swatch, ColorFamily } from "./colors";

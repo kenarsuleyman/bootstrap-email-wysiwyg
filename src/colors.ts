@@ -79,6 +79,11 @@ export function tokenToHex(token: string): string {
   return TOKEN_TO_HEX.get(token) ?? token;
 }
 
+/** True for a palette token (`primary`, `blue-500`, …), not a custom hex. */
+export function isColorToken(token: string): boolean {
+  return TOKEN_TO_HEX.has(token);
+}
+
 export type ColorKind = "text" | "bg" | "border";
 
 /** Bootstrap Email class for a palette token, or null for custom hex colors. */
